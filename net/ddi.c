@@ -1,12 +1,12 @@
 /*
- * ddi.c	Implement the Device Driver Interface (DDI) routines.
- *		Currently, this is only used by the NET layer of LINUX,
- *		but it eventually might move to an upper directory of
- *		the system.
+ * ddi.c    Implement the Device Driver Interface (DDI) routines.
+ *        Currently, this is only used by the NET layer of LINUX,
+ *        but it eventually might move to an upper directory of
+ *        the system.
  *
- * Version:	@(#)ddi.c	1.0.5	04/22/93
+ * Version:    @(#)ddi.c    1.0.5    04/22/93
  *
- * Author:	Fred N. van Kempen, <waltje@uwalt.nl.mugnet.org>
+ * Author:    Fred N. van Kempen, <waltje@uwalt.nl.mugnet.org>
  */
 #include <asm/segment.h>
 #include <asm/system.h>
@@ -20,16 +20,16 @@
 #include <linux/ddi.h>
 
 
-#undef	DDI_DEBUG
-#ifdef	DDI_DEBUG
-#   define PRINTK(x)	printk x
+#undef    DDI_DEBUG
+#ifdef    DDI_DEBUG
+#   define PRINTK(x)    printk x
 #else
-#   define PRINTK(x)	/**/
+#   define PRINTK(x)    /**/
 #endif
 
 
-extern struct ddi_device	devices[];	/* device driver map	*/
-extern struct ddi_proto		protocols[];	/* network protocols	*/
+extern struct ddi_device    devices[];      /* device driver map    */
+extern struct ddi_proto     protocols[];    /* network protocols    */
 
 
 /*
@@ -49,11 +49,11 @@ ddi_map(const char *id)
   PRINTK (("DDI: MAP: looking for \"%s\": ", id));
   dev = devices;
   while (dev->title != NULL) {
-	if (strncmp(dev->name, id, DDI_MAXNAME) == 0) {
-		PRINTK (("OK at 0x%X\n", dev));
-		return(dev);
-	}
-	dev++;
+    if (strncmp(dev->name, id, DDI_MAXNAME) == 0) {
+        PRINTK (("OK at 0x%X\n", dev));
+        return(dev);
+    }
+    dev++;
   }
   PRINTK (("NOT FOUND\n"));
   return(NULL);
@@ -74,14 +74,14 @@ ddi_init(void)
   PRINTK (("DDI: Starting up!\n"));
 
   /* First off, kick all configured protocols. */
-  pro = protocols;
+  pro = protocols; // 在 net/Space.c 文件中
   while (pro->name != NULL) {
     (*pro->init)(pro);
     pro++;
   }
 
   /* Done.  Now kick all configured device drivers. */
-  dev = devices;
+  dev = devices; // 在 net/Space.c 文件中
   while (dev->title != NULL) {
     (*dev->init)(dev);
     dev++;
