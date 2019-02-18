@@ -93,8 +93,8 @@ struct sock {
   struct sk_buff        *volatile send_head;
   struct sk_buff        *volatile back_log;
   struct sk_buff        *partial;
-  struct timer_list        partial_timer;
-  long                retransmits;
+  struct timer_list      partial_timer;
+  long                   retransmits;
   struct sk_buff        *volatile wback,
                 *volatile wfront,
                 *volatile rqueue;
@@ -102,15 +102,15 @@ struct sock {
   struct wait_queue        **sleep;
   unsigned long            daddr;
   unsigned long            saddr;
-  unsigned short        max_unacked;
-  unsigned short        window;
-  unsigned short        bytes_rcv;
+  unsigned short           max_unacked;
+  unsigned short           window;
+  unsigned short           bytes_rcv;
 /* mss is min(mtu, max_window) */
-  unsigned short        mtu;       /* mss negotiated in the syn's */
+  unsigned short             mtu;       /* mss negotiated in the syn's */
   volatile unsigned short    mss;       /* current eff. mss - can change */
   volatile unsigned short    user_mss;  /* mss requested by user in ioctl */
   volatile unsigned short    max_window;
-  unsigned short        num;
+  unsigned short             num;
   volatile unsigned short    cong_window;
   volatile unsigned short    cong_count;
   volatile unsigned short    ssthresh;
@@ -123,23 +123,23 @@ struct sock {
  * we want to go back to a backoff formula that needs it
  */
   volatile unsigned short    backoff;
-  volatile short        err;
-  unsigned char            protocol;
-  volatile unsigned char    state;
-  volatile unsigned char    ack_backlog;
-  unsigned char            max_ack_backlog;
-  unsigned char            priority;
-  unsigned char            debug;
-  unsigned short        rcvbuf;
-  unsigned short        sndbuf;
-  unsigned short        type;
+  volatile short             err;
+  unsigned char              protocol;
+  volatile unsigned char     state;
+  volatile unsigned char     ack_backlog;
+  unsigned char              max_ack_backlog;
+  unsigned char              priority;
+  unsigned char              debug;
+  unsigned short             rcvbuf;
+  unsigned short             sndbuf;
+  unsigned short             type;
 #ifdef CONFIG_IPX
-  ipx_address            ipx_source_addr,ipx_dest_addr;
-  unsigned short        ipx_type;
+  ipx_address                ipx_source_addr,ipx_dest_addr;
+  unsigned short             ipx_type;
 #endif
 #ifdef CONFIG_AX25
 /* Really we want to add a per protocol private area */
-  ax25_address            ax25_source_addr,ax25_dest_addr;
+  ax25_address                ax25_source_addr,ax25_dest_addr;
   struct sk_buff *volatile    ax25_retxq[8];
   char                ax25_state,ax25_vs,ax25_vr,ax25_lastrxnr,ax25_lasttxnr;
   char                ax25_condition;
@@ -151,12 +151,12 @@ struct sock {
   ax25_digi            *ax25_digipeat;
 #endif
 /* IP 'private area' or will be eventually */
-  int                ip_ttl;        /* TTL setting */
-  int                ip_tos;        /* TOS */
+  int                      ip_ttl;        /* TTL setting */
+  int                      ip_tos;        /* TOS */
   struct tcphdr            dummy_th;
 
   /* This part is used for the timeout functions (timer.c). */
-  int                timeout;    /* What are we waiting for? */
+  int                      timeout;    /* What are we waiting for? */
   struct timer_list        timer;
 
   /* identd */
