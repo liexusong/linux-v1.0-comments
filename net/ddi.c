@@ -76,15 +76,15 @@ ddi_init(void)
   /* First off, kick all configured protocols. */
   pro = protocols;
   while (pro->name != NULL) {
-	(*pro->init)(pro);
-	pro++;
+    (*pro->init)(pro);
+    pro++;
   }
-  
+
   /* Done.  Now kick all configured device drivers. */
   dev = devices;
   while (dev->title != NULL) {
-	(*dev->init)(dev);
-	dev++;
+    (*dev->init)(dev);
+    dev++;
   }
 
   /* We're all done... */
