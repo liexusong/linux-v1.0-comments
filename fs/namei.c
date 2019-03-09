@@ -101,8 +101,8 @@ int lookup(struct inode * dir,const char * name, int len,
 	if (!dir)
 		return -ENOENT;
 /* check permissions before traversing mount-points */
-	perm = permission(dir,MAY_EXEC);
-	if (len==2 && name[0] == '.' && name[1] == '.') {
+	perm = permission(dir,MAY_EXEC); // 是否有权限
+	if (len==2 && name[0] == '.' && name[1] == '.') { // 如果是上一级目录
 		if (dir == current->root) {
 			*result = dir;
 			return 0;
@@ -127,9 +127,11 @@ int lookup(struct inode * dir,const char * name, int len,
 		*result = dir;
 		return 0;
 	}
-	return dir->i_op->lookup(dir,name,len,result);
+	return dir->i_op->lookup(dir,name,len,result); // 指定文件系统的lookup()方法, 对应minix系统就是: minix_lookup()
 }
 
+// @dir 为父目录inode
+// @inode 为当前目录inode
 int follow_link(struct inode * dir, struct inode * inode,
 	int flag, int mode, struct inode ** res_inode)
 {
@@ -166,7 +168,7 @@ static int dir_namei(const char * pathname, int * namelen, const char ** name,
 		base = current->pwd;
 		base->i_count++;
 	}
-	if ((c = *pathname) == '/') {
+	if ((c = *pathname) == '/') { // 从根目录开始查找
 		iput(base);
 		base = current->root;
 		pathname++;
@@ -174,17 +176,17 @@ static int dir_namei(const char * pathname, int * namelen, const char ** name,
 	}
 	while (1) {
 		thisname = pathname;
-		for(len=0;(c = *(pathname++))&&(c != '/');len++)
+		for(len=0;(c = *(pathname++))&&(c != '/');len++) // 找到下一个目录
 			/* nothing */ ;
 		if (!c)
 			break;
 		base->i_count++;
-		error = lookup(base,thisname,len,&inode);
+		error = lookup(base,thisname,len,&inode); // 调用lookup()查找当前目录的inode
 		if (error) {
 			iput(base);
 			return error;
 		}
-		error = follow_link(base,inode,0,0,&base);
+		error = follow_link(base,inode,0,0,&base); // 一般把base设置为inode
 		if (error)
 			return error;
 	}
@@ -192,9 +194,9 @@ static int dir_namei(const char * pathname, int * namelen, const char ** name,
 		iput(base);
 		return -ENOTDIR;
 	}
-	*name = thisname;
-	*namelen = len;
-	*res_inode = base;
+	*name = thisname;  // 文件名
+	*namelen = len;    // 文件名长度
+	*res_inode = base; // 文件所在目录inode
 	return 0;
 }
 
@@ -284,7 +286,7 @@ int open_namei(const char * pathname, int flag, int mode,
 	error = dir_namei(pathname,&namelen,&basename,base,&dir);
 	if (error)
 		return error;
-	if (!namelen) {			/* special case: '/usr/' etc */
+	if (!namelen) {			/* special case: '/usr/' etc */ // 没有文件名, 直接返回目录的inode
 		if (flag & 2) {
 			iput(dir);
 			return -EISDIR;
@@ -298,21 +300,21 @@ int open_namei(const char * pathname, int flag, int mode,
 		return 0;
 	}
 	dir->i_count++;		/* lookup eats the dir */
-	if (flag & O_CREAT) {
+	if (flag & O_CREAT) { // 如果是创建文件
 		down(&dir->i_sem);
 		error = lookup(dir,basename,namelen,&inode);
 		if (!error) {
-			if (flag & O_EXCL) {
+			if (flag & O_EXCL) { // 如果文件存在并且设置了O_EXCL标志, 返回错误
 				iput(inode);
 				error = -EEXIST;
 			}
-		} else if (!permission(dir,MAY_WRITE | MAY_EXEC))
+		} else if (!permission(dir,MAY_WRITE | MAY_EXEC)) // 如果目录没有写权限
 			error = -EACCES;
-		else if (!dir->i_op || !dir->i_op->create)
+		else if (!dir->i_op || !dir->i_op->create) // 没有创建文件的方法
 			error = -EACCES;
 		else if (IS_RDONLY(dir))
 			error = -EROFS;
-		else {
+		else { // 创建文件
 			dir->i_count++;		/* create eats the dir */
 			error = dir->i_op->create(dir,basename,namelen,mode,res_inode);
 			up(&dir->i_sem);
@@ -329,7 +331,8 @@ int open_namei(const char * pathname, int flag, int mode,
 	error = follow_link(dir,inode,flag,mode,&inode);
 	if (error)
 		return error;
-	if (S_ISDIR(inode->i_mode) && (flag & 2)) {
+	// 检查类型是否正常
+	if (S_ISDIR(inode->i_mode) && (flag & 2)) { // 如果是目录
 		iput(inode);
 		return -EISDIR;
 	}
@@ -348,9 +351,9 @@ int open_namei(const char * pathname, int flag, int mode,
 			return -EROFS;
 		}
 	}
- 	if ((inode->i_count > 1) && (flag & 2)) {
+ 	if ((inode->i_count > 1) && (flag & 2)) { // 如果要进行写操作, 但是inode已经被占用, 返回错误
  		for (p = &LAST_TASK ; p > &FIRST_TASK ; --p) {
-		        struct vm_area_struct * mpnt;
+		    struct vm_area_struct * mpnt;
  			if (!*p)
  				continue;
  			if (inode == (*p)->executable) {

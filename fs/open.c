@@ -395,7 +395,7 @@ int do_open(const char * filename,int flags,int mode)
 		flag++;
 	if (flag & (O_TRUNC | O_CREAT))
 		flag |= 2;
-	error = open_namei(filename,flag,mode,&inode,NULL);
+	error = open_namei(filename,flag,mode,&inode,NULL); // 得到打开文件的inode
 	if (error) {
 		current->filp[fd]=NULL;
 		f->f_count--;
@@ -408,7 +408,7 @@ int do_open(const char * filename,int flags,int mode)
 	f->f_op = NULL;
 	if (inode->i_op)
 		f->f_op = inode->i_op->default_file_ops;
-	if (f->f_op && f->f_op->open) {
+	if (f->f_op && f->f_op->open) { // 如果是minix文件系统, open为空
 		error = f->f_op->open(inode,f);
 		if (error) {
 			iput(inode);

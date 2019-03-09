@@ -174,3 +174,99 @@ int do_open(const char * filename,int flags,int mode)
     return (fd);
 }
 ```
+`do_open()` 函数首先找到一个为被使用的文件fd，然后调用 `get_empty_filp()` 函数获取一个空闲的 `struct file` 结构，再调用 `open_namei()` 函数创建一个 `inode` 结构，最后通过调用指定文件系统的 `open()` 方法来打开文件。
+
+上面的步骤中，最重要的是调用 `open_namei()` 函数，我们来分析一下 `open_namei()` 函数的实现，由于 `open_namei()` 比较复杂，所以我们分段来分析这个函数：
+```cpp
+int open_namei(const char * pathname, int flag, int mode,
+    struct inode ** res_inode, struct inode * base)
+{
+    const char * basename;
+    int namelen,error;
+    struct inode * dir, *inode;
+    struct task_struct ** p;
+
+    mode &= S_IALLUGO & ~current->umask;
+    mode |= S_IFREG;
+    error = dir_namei(pathname,&namelen,&basename,base,&dir);
+    if (error)
+        return error;
+```
+`open_namei()` 函数首先通过调用 `dir_namei()` 函数来获得目录的 `inode` 结构，和放回文件名：
+```cpp
+static int dir_namei(const char * pathname, int * namelen, const char ** name,
+    struct inode * base, struct inode ** res_inode)
+{
+    char c;
+    const char * thisname;
+    int len,error;
+    struct inode * inode;
+
+    *res_inode = NULL;
+    if (!base) {
+        base = current->pwd;
+        base->i_count++;
+    }
+    if ((c = *pathname) == '/') { // 从根目录开始查找
+        iput(base);
+        base = current->root;
+        pathname++;
+        base->i_count++;
+    }
+    while (1) {
+        thisname = pathname;
+        for(len=0;(c = *(pathname++))&&(c != '/');len++) // 找到下一个目录
+            /* nothing */ ;
+        if (!c)
+            break;
+        base->i_count++;
+        error = lookup(base,thisname,len,&inode); // 调用lookup()查找当前目录的inode
+        if (error) {
+            iput(base);
+            return error;
+        }
+        error = follow_link(base,inode,0,0,&base); // 一般把base设置为inode
+        if (error)
+            return error;
+    }
+    if (!base->i_op || !base->i_op->lookup) {
+        iput(base);
+        return -ENOTDIR;
+    }
+    *name = thisname;  // 文件名
+    *namelen = len;    // 文件名长度
+    *res_inode = base; // 文件所在目录inode
+    return 0;
+}
+```
+`dir_namei()` 函数会沿着路径一步步查找，直到查找到最后一级目录，返最后一级目录的 `inode` 和文件名。
+
+接着分析 `do_open()` 函数：
+```cpp
+    dir->i_count++;     /* lookup eats the dir */
+    if (flag & O_CREAT) { // 如果是创建文件
+        down(&dir->i_sem);
+        error = lookup(dir,basename,namelen,&inode);
+        if (!error) {
+            if (flag & O_EXCL) { // 如果文件存在并且设置了O_EXCL标志, 返回错误
+                iput(inode);
+                error = -EEXIST;
+            }
+        } else if (!permission(dir,MAY_WRITE | MAY_EXEC)) // 如果目录没有写权限
+            error = -EACCES;
+        else if (!dir->i_op || !dir->i_op->create) // 没有创建文件的方法
+            error = -EACCES;
+        else if (IS_RDONLY(dir))
+            error = -EROFS;
+        else { // 创建文件
+            dir->i_count++;     /* create eats the dir */
+            error = dir->i_op->create(dir,basename,namelen,mode,res_inode);
+            up(&dir->i_sem);
+            iput(dir);
+            return error;
+        }
+        up(&dir->i_sem);
+    } else
+        error = lookup(dir,basename,namelen,&inode);
+```
+上面的代码首先判断我们是否要创建文件，如果创建文件且文件已经存在，那么要检测是否设置了 `O_EXCL` 标志，如果设置了 `O_EXCL` 标志（文件不能存在），那么返回错误。然后检测目录是否有写权限，如果有就调用目录 `inode` 的 `create` （minix文件系统对应 `minix_create()` ）方法来创建文件，并且得到文件的 `inode` 结构。

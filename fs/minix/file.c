@@ -33,15 +33,15 @@ static int minix_file_write(struct inode *, struct file *, char *, int);
  * the minix filesystem.
  */
 static struct file_operations minix_file_operations = {
-	NULL,			/* lseek - default */
+	NULL,				/* lseek - default */
 	minix_file_read,	/* read */
 	minix_file_write,	/* write */
-	NULL,			/* readdir - bad */
-	NULL,			/* select - default */
-	NULL,			/* ioctl - default */
+	NULL,				/* readdir - bad */
+	NULL,				/* select - default */
+	NULL,				/* ioctl - default */
 	generic_mmap,  		/* mmap */
-	NULL,			/* no special open is needed */
-	NULL,			/* release */
+	NULL,				/* no special open is needed */
+	NULL,				/* release */
 	minix_sync_file		/* fsync */
 };
 
@@ -59,7 +59,7 @@ struct inode_operations minix_file_inode_operations = {
 	NULL,			/* readlink */
 	NULL,			/* follow_link */
 	minix_bmap,		/* bmap */
-	minix_truncate,		/* truncate */
+	minix_truncate,	/* truncate */
 	NULL			/* permission */
 };
 

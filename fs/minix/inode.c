@@ -394,7 +394,7 @@ struct buffer_head * minix_bread(struct inode * inode, int block, int create)
 	return NULL;
 }
 
-void minix_read_inode(struct inode * inode)
+void minix_read_read_inode(struct inode * inode)
 {
 	struct buffer_head * bh;
 	struct minix_inode * raw_inode;
@@ -408,16 +408,20 @@ void minix_read_inode(struct inode * inode)
 			inode->i_dev, ino);
 		return;
 	}
-	block = 2 + inode->i_sb->u.minix_sb.s_imap_blocks +
-		    inode->i_sb->u.minix_sb.s_zmap_blocks +
-		    (ino-1)/MINIX_INODES_PER_BLOCK;
+
+	// inode所在的磁盘块
+	block = 2 + inode->i_sb->u.minix_sb.s_imap_blocks
+		      + inode->i_sb->u.minix_sb.s_zmap_blocks
+		      + (ino-1)/MINIX_INODES_PER_BLOCK;
+
 	if (!(bh=bread(inode->i_dev,block, BLOCK_SIZE))) {
 		printk("Major problem: unable to read inode from dev 0x%04x\n",
 			inode->i_dev);
 		return;
 	}
 	raw_inode = ((struct minix_inode *) bh->b_data) +
-		    (ino-1)%MINIX_INODES_PER_BLOCK;
+		    		(ino-1)%MINIX_INODES_PER_BLOCK;
+	// 重置inode的数据
 	inode->i_mode = raw_inode->i_mode;
 	inode->i_uid = raw_inode->i_uid;
 	inode->i_gid = raw_inode->i_gid;
@@ -430,15 +434,15 @@ void minix_read_inode(struct inode * inode)
 	else for (block = 0; block < 9; block++)
 		inode->u.minix_i.i_data[block] = raw_inode->i_zone[block];
 	brelse(bh);
-	if (S_ISREG(inode->i_mode))
+	if (S_ISREG(inode->i_mode))      // 普通文件
 		inode->i_op = &minix_file_inode_operations;
-	else if (S_ISDIR(inode->i_mode))
+	else if (S_ISDIR(inode->i_mode)) // 目录
 		inode->i_op = &minix_dir_inode_operations;
-	else if (S_ISLNK(inode->i_mode))
+	else if (S_ISLNK(inode->i_mode)) // 连接
 		inode->i_op = &minix_symlink_inode_operations;
-	else if (S_ISCHR(inode->i_mode))
+	else if (S_ISCHR(inode->i_mode)) // 字符设备
 		inode->i_op = &chrdev_inode_operations;
-	else if (S_ISBLK(inode->i_mode))
+	else if (S_ISBLK(inode->i_mode)) // 块设备
 		inode->i_op = &blkdev_inode_operations;
 	else if (S_ISFIFO(inode->i_mode))
 		init_fifo(inode);

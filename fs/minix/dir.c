@@ -21,16 +21,16 @@ static int minix_dir_read(struct inode * inode, struct file * filp, char * buf, 
 static int minix_readdir(struct inode *, struct file *, struct dirent *, int);
 
 static struct file_operations minix_dir_operations = {
-	NULL,			/* lseek - default */
+	NULL,				/* lseek - default */
 	minix_dir_read,		/* read */
-	NULL,			/* write - bad */
+	NULL,				/* write - bad */
 	minix_readdir,		/* readdir */
-	NULL,			/* select - default */
-	NULL,			/* ioctl - default */
-	NULL,			/* mmap */
-	NULL,			/* no special open code */
-	NULL,			/* no special release code */
-	file_fsync		/* default fsync */
+	NULL,				/* select - default */
+	NULL,				/* ioctl - default */
+	NULL,				/* mmap */
+	NULL,				/* no special open code */
+	NULL,				/* no special release code */
+	file_fsync			/* default fsync */
 };
 
 /*
@@ -40,18 +40,18 @@ struct inode_operations minix_dir_inode_operations = {
 	&minix_dir_operations,	/* default directory file-ops */
 	minix_create,		/* create */
 	minix_lookup,		/* lookup */
-	minix_link,		/* link */
+	minix_link,			/* link */
 	minix_unlink,		/* unlink */
 	minix_symlink,		/* symlink */
 	minix_mkdir,		/* mkdir */
 	minix_rmdir,		/* rmdir */
 	minix_mknod,		/* mknod */
 	minix_rename,		/* rename */
-	NULL,			/* readlink */
-	NULL,			/* follow_link */
-	NULL,			/* bmap */
+	NULL,				/* readlink */
+	NULL,				/* follow_link */
+	NULL,				/* bmap */
 	minix_truncate,		/* truncate */
-	NULL			/* permission */
+	NULL				/* permission */
 };
 
 static int minix_readdir(struct inode * inode, struct file * filp,
