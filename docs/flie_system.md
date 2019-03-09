@@ -106,4 +106,71 @@ void mount_root(void)
 	panic("VFS: Unable to mount root");
 }
 ```
-`mount_root()` 函数首先会遍历系统支持的所有文件系统，然后调用他们的 `read_super()` （譬如minix文件系统会调用minix_read_super()）方法来尝试读取 `根目录` 的文件系统超级块，如果 `read_super()` 方法返回一个超级块对象，表示读取成功，根目录使用此文件系统格式化的。然后把当前进程的 `pwd` (当前工作目录) 和 `root` (根目录) 字段设置为根目录的 `inode` 节点。
+`mount_root()` 函数首先会遍历系统支持的所有文件系统，然后调用他们的 `read_super()` （譬如minix文件系统会调用minix_read_super()）方法来尝试读取 `根目录` 的文件系统超级块，如果 `read_super()` 方法返回一个超级块对象，表示读取成功，根目录使用此文件系统格式化的。然后把当前进程（`init进程`）的 `pwd` (当前工作目录) 和 `root` (根目录) 字段设置为根目录的 `inode` 节点。
+
+## 打开文件操作
+在用户态通过调用 `open()` 系统调用打开一个文件，而 `open()` 系统调用最终会进入内核态，并且调用 `sys_open()` 函数来处理。现在我们来分析一下 `sys_open()` 函数的处理过程：
+```cpp
+asmlinkage int sys_open(const char * filename,int flags,int mode)
+{
+    char * tmp;
+    int error;
+
+    error = getname(filename, &tmp);
+    if (error)
+        return error;
+    error = do_open(tmp,flags,mode);
+    putname(tmp);
+    return error;
+}
+```
+从代码可以看到，`sys_open()` 函数最后会调用 `do_open()` 函数处理：
+```cpp
+int do_open(const char * filename,int flags,int mode)
+{
+    struct inode * inode;
+    struct file * f;
+    int flag,error,fd;
+
+    for(fd=0 ; fd<NR_OPEN ; fd++)
+        if (!current->filp[fd])
+            break;
+    if (fd>=NR_OPEN)
+        return -EMFILE;
+    FD_CLR(fd,&current->close_on_exec);
+    f = get_empty_filp();
+    if (!f)
+        return -ENFILE;
+    current->filp[fd] = f;
+    f->f_flags = flag = flags;
+    f->f_mode = (flag+1) & O_ACCMODE;
+    if (f->f_mode)
+        flag++;
+    if (flag & (O_TRUNC | O_CREAT))
+        flag |= 2;
+    error = open_namei(filename,flag,mode,&inode,NULL);
+    if (error) {
+        current->filp[fd]=NULL;
+        f->f_count--;
+        return error;
+    }
+
+    f->f_inode = inode;
+    f->f_pos = 0;
+    f->f_reada = 0;
+    f->f_op = NULL;
+    if (inode->i_op)
+        f->f_op = inode->i_op->default_file_ops;
+    if (f->f_op && f->f_op->open) {
+        error = f->f_op->open(inode,f);
+        if (error) {
+            iput(inode);
+            f->f_count--;
+            current->filp[fd]=NULL;
+            return error;
+        }
+    }
+    f->f_flags &= ~(O_CREAT | O_EXCL | O_NOCTTY | O_TRUNC);
+    return (fd);
+}
+```

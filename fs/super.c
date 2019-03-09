@@ -527,6 +527,7 @@ void mount_root(void)
 			inode->i_count += 3 ;	/* NOTE! it is logically used 4 times, not 1 */
 			sb->s_covered = inode;
 			sb->s_flags = root_mountflags;
+			// 系统初始化时current指向init进程
 			current->pwd = inode;
 			current->root = inode;
 			printk ("VFS: Mounted root (%s filesystem)%s.\n",
