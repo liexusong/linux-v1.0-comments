@@ -394,7 +394,7 @@ struct buffer_head * minix_bread(struct inode * inode, int block, int create)
 	return NULL;
 }
 
-void minix_read_read_inode(struct inode * inode)
+void minix_read_inode(struct inode * inode)
 {
 	struct buffer_head * bh;
 	struct minix_inode * raw_inode;

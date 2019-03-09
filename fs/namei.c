@@ -103,7 +103,7 @@ int lookup(struct inode * dir,const char * name, int len,
 /* check permissions before traversing mount-points */
 	perm = permission(dir,MAY_EXEC); // 是否有权限
 	if (len==2 && name[0] == '.' && name[1] == '.') { // 如果是上一级目录
-		if (dir == current->root) {
+		if (dir == current->root) { // 如果当前目录已经是根目录
 			*result = dir;
 			return 0;
 		} else if ((sb = dir->i_sb) && (dir == sb->s_mounted)) {
