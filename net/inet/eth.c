@@ -1,28 +1,28 @@
 /*
- * INET		An implementation of the TCP/IP protocol suite for the LINUX
- *		operating system.  INET is implemented using the  BSD Socket
- *		interface as the means of communication with the user level.
+ * INET        An implementation of the TCP/IP protocol suite for the LINUX
+ *        operating system.  INET is implemented using the  BSD Socket
+ *        interface as the means of communication with the user level.
  *
- *		Ethernet-type device handling.
+ *        Ethernet-type device handling.
  *
- * Version:	@(#)eth.c	1.0.7	05/25/93
+ * Version:    @(#)eth.c    1.0.7    05/25/93
  *
- * Authors:	Ross Biro, <bir7@leland.Stanford.Edu>
- *		Fred N. van Kempen, <waltje@uWalt.NL.Mugnet.ORG>
- *		Mark Evans, <evansmp@uhura.aston.ac.uk>
+ * Authors:    Ross Biro, <bir7@leland.Stanford.Edu>
+ *        Fred N. van Kempen, <waltje@uWalt.NL.Mugnet.ORG>
+ *        Mark Evans, <evansmp@uhura.aston.ac.uk>
  * 
  * Fixes:
- *		Mr Linux	: Arp problems
- *		Alan Cox	: Generic queue tidyup (very tiny here)
- *		Alan Cox	: eth_header ntohs should be htons
- *		Alan Cox	: eth_rebuild_header missing an htons and
- *				  minor other things.
- *		Tegge		: Arp bug fixes. 
+ *        Mr Linux    : Arp problems
+ *        Alan Cox    : Generic queue tidyup (very tiny here)
+ *        Alan Cox    : eth_header ntohs should be htons
+ *        Alan Cox    : eth_rebuild_header missing an htons and
+ *                  minor other things.
+ *        Tegge        : Arp bug fixes. 
  *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
+ *        This program is free software; you can redistribute it and/or
+ *        modify it under the terms of the GNU General Public License
+ *        as published by the Free Software Foundation; either version
+ *        2 of the License, or (at your option) any later version.
  */
 #include <asm/segment.h>
 #include <asm/system.h>
@@ -53,32 +53,32 @@ char *eth_print(unsigned char *ptr)
 
   if (ptr == NULL) return("[NONE]");
   sprintf(buff, "%02X:%02X:%02X:%02X:%02X:%02X",
-	(ptr[0] & 255), (ptr[1] & 255), (ptr[2] & 255),
-	(ptr[3] & 255), (ptr[4] & 255), (ptr[5] & 255)
+    (ptr[0] & 255), (ptr[1] & 255), (ptr[2] & 255),
+    (ptr[3] & 255), (ptr[4] & 255), (ptr[5] & 255)
   );
   return(buff);
 }
 
 void eth_setup(char *str, int *ints)
 {
-	struct device *d = dev_base;
+    struct device *d = dev_base;
 
-	if (!str || !*str)
-		return;
-	while (d) {
-		if (!strcmp(str,d->name)) {
-			if (ints[0] > 0)
-				d->irq=ints[1];
-			if (ints[0] > 1)
-				d->base_addr=ints[2];
-			if (ints[0] > 2)
-				d->mem_start=ints[3];
-			if (ints[0] > 3)
-				d->mem_end=ints[4];
-			break;
-		}
-		d=d->next;
-	}
+    if (!str || !*str)
+        return;
+    while (d) {
+        if (!strcmp(str,d->name)) {
+            if (ints[0] > 0)
+                d->irq=ints[1];
+            if (ints[0] > 1)
+                d->base_addr=ints[2];
+            if (ints[0] > 2)
+                d->mem_start=ints[3];
+            if (ints[0] > 3)
+                d->mem_end=ints[4];
+            break;
+        }
+        d=d->next;
+    }
 }
 
 /* Display the contents of the Ethernet MAC header. */
@@ -96,7 +96,7 @@ eth_dump(struct ethhdr *eth)
 /* Create the Ethernet MAC header. */
 int
 eth_header(unsigned char *buff, struct device *dev, unsigned short type,
-	   unsigned long daddr, unsigned long saddr, unsigned len)
+       unsigned long daddr, unsigned long saddr, unsigned len)
 {
   struct ethhdr *eth;
 
@@ -109,18 +109,18 @@ eth_header(unsigned char *buff, struct device *dev, unsigned short type,
 
   /* We don't ARP for the LOOPBACK device... */
   if (dev->flags & IFF_LOOPBACK) {
-	DPRINTF((DBG_DEV, "ETH: No header for loopback\n"));
-	memcpy(eth->h_source, dev->dev_addr, dev->addr_len);
-	memset(eth->h_dest, 0, dev->addr_len);
-	return(dev->hard_header_len);
+    DPRINTF((DBG_DEV, "ETH: No header for loopback\n"));
+    memcpy(eth->h_source, dev->dev_addr, dev->addr_len);
+    memset(eth->h_dest, 0, dev->addr_len);
+    return(dev->hard_header_len);
   }
 
   /* Check if we can use the MAC BROADCAST address. */
   if (chk_addr(daddr) == IS_BROADCAST) {
-	DPRINTF((DBG_DEV, "ETH: Using MAC Broadcast\n"));
-	memcpy(eth->h_source, dev->dev_addr, dev->addr_len);
-	memcpy(eth->h_dest, dev->broadcast, dev->addr_len);
-	return(dev->hard_header_len);
+    DPRINTF((DBG_DEV, "ETH: Using MAC Broadcast\n"));
+    memcpy(eth->h_source, dev->dev_addr, dev->addr_len);
+    memcpy(eth->h_dest, dev->broadcast, dev->addr_len);
+    return(dev->hard_header_len);
   }
   cli();
   memcpy(eth->h_source, &saddr, 4);
@@ -129,15 +129,15 @@ eth_header(unsigned char *buff, struct device *dev, unsigned short type,
   {
         sti();
         if(type!=ETH_P_IP)
-        	printk("Erk: protocol %X got into an arp request state!\n",type);
-	return(-dev->hard_header_len);
+            printk("Erk: protocol %X got into an arp request state!\n",type);
+    return(-dev->hard_header_len);
   } 
   else
   {
-  	memcpy(eth->h_source,dev->dev_addr,dev->addr_len);	/* This was missing causing chaos if the
-  								   header built correctly! */
-  	sti();
-  	return(dev->hard_header_len);
+      memcpy(eth->h_source,dev->dev_addr,dev->addr_len);    /* This was missing causing chaos if the
+                                     header built correctly! */
+      sti();
+      return(dev->hard_header_len);
   }
 }
 
@@ -155,8 +155,8 @@ eth_rebuild_header(void *buff, struct device *dev)
   dst = *(unsigned long *) eth->h_dest;
   DPRINTF((DBG_DEV, "ETH: RebuildHeader: SRC=%s ", in_ntoa(src)));
   DPRINTF((DBG_DEV, "DST=%s\n", in_ntoa(dst)));
-  if(eth->h_proto!=htons(ETH_P_ARP))	/* This ntohs kind of helps a bit! */
-	  if (arp_find(eth->h_dest, dst, dev, dev->pa_addr /* src */)) return(1);
+  if(eth->h_proto!=htons(ETH_P_ARP))    /* This ntohs kind of helps a bit! */
+      if (arp_find(eth->h_dest, dst, dev, dev->pa_addr /* src */)) return(1);
   memcpy(eth->h_source, dev->dev_addr, dev->addr_len);
   return(0);
 }
@@ -182,6 +182,6 @@ eth_type_trans(struct sk_buff *skb, struct device *dev)
   eth = (struct ethhdr *) skb->data;
 
   if(ntohs(eth->h_proto)<1536)
-  	return(htons(ETH_P_802_3));
+      return(htons(ETH_P_802_3));
   return(eth->h_proto);
 }

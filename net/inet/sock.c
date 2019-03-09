@@ -212,6 +212,7 @@ get_new_socknum(struct proto *prot, unsigned short base)
 }
 
 
+// 把socket添加到socket队列中
 void
 put_sock(unsigned short num, struct sock *sk)
 {
@@ -226,12 +227,13 @@ put_sock(unsigned short num, struct sock *sk)
 
   /* We can't have an interupt re-enter here. */
   cli();
-  if (sk->prot->sock_array[num] == NULL) {
+  if (sk->prot->sock_array[num] == NULL) { // 如果当前端口还没有socket, 直接添加进去就ok了
     sk->prot->sock_array[num] = sk;
     sti();
     return;
   }
   sti();
+  // 一个端口对应多个socket(例如accept接收到的socket就使用跟bind时一样的端口)
   for(mask = 0xff000000; mask != 0xffffffff; mask = (mask >> 8) | mask) {
     if ((mask & sk->saddr) &&
         (mask & sk->saddr) != (mask & 0xffffffff)) {
@@ -243,7 +245,7 @@ put_sock(unsigned short num, struct sock *sk)
 
   cli();
   sk1 = sk->prot->sock_array[num];
-  for(sk2 = sk1; sk2 != NULL; sk2=sk2->next) {
+  for(sk2 = sk1; sk2 != NULL; sk2=sk2->next) { // 插入到socket队列中
     if (!(sk2->saddr & mask)) {
         if (sk2 == sk1) {
             sk->next = sk->prot->sock_array[num];
@@ -726,7 +728,7 @@ inet_listen(struct socket *sock, int backlog)
 
   /* We might as well re use these. */
   sk->max_ack_backlog = backlog;
-  if (sk->state != TCP_LISTEN) {
+  if (sk->state != TCP_LISTEN) { // 设置LISTEN状态
     sk->ack_backlog = 0;
     sk->state = TCP_LISTEN;
   }
@@ -1051,7 +1053,7 @@ inet_bind(struct socket *sock, struct sockaddr *uaddr,
       return(-EADDRNOTAVAIL);    /* Source address MUST be ours! */
 
   if (chk_addr(addr.sin_addr.s_addr) || addr.sin_addr.s_addr == 0)
-                    sk->saddr = addr.sin_addr.s_addr;
+      sk->saddr = addr.sin_addr.s_addr;
 
   DPRINTF((DBG_INET, "sock_array[%d] = %X:\n", snum &(SOCK_ARRAY_SIZE -1),
               sk->prot->sock_array[snum &(SOCK_ARRAY_SIZE -1)]));
@@ -1715,11 +1717,11 @@ struct sock *get_sock(struct proto *prot, unsigned short num,
         continue;
     if(prot == &udp_prot)
         return s;
-    if(ip_addr_match(s->daddr,raddr)==0)
+    if(ip_addr_match(s->daddr,raddr)==0) // 匹配目标IP是否对应
         continue;
     if (s->dummy_th.dest != rnum && s->dummy_th.dest != 0)
         continue;
-    if(ip_addr_match(s->saddr,laddr) == 0)
+    if(ip_addr_match(s->saddr,laddr) == 0) // 匹配源IP是否对应
         continue;
     return(s);
   }

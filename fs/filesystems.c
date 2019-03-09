@@ -39,6 +39,7 @@
 #include <linux/sysv_fs.h>
 #endif
 
+// 这里是已经注册的文件系统
 struct file_system_type file_systems[] = {
 #ifdef CONFIG_MINIX_FS
 	{minix_read_super,	"minix",	1},

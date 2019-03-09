@@ -391,8 +391,8 @@ asmlinkage void start_kernel(void)
 	memory_start += prof_len * sizeof(unsigned long);
 #endif
 	memory_start = kmalloc_init(memory_start,memory_end);
-	memory_start = chr_dev_init(memory_start,memory_end);
-	memory_start = blk_dev_init(memory_start,memory_end);
+	memory_start = chr_dev_init(memory_start,memory_end); // 初始化字符设备
+	memory_start = blk_dev_init(memory_start,memory_end); // 初始化块设备
 	sti();
 	calibrate_delay();
 #ifdef CONFIG_INET
@@ -481,7 +481,7 @@ void init(void)
 {
 	int pid,i;
 
-	setup((void *) &drive_info);
+	setup((void *) &drive_info); // 在文件 drivers/block/genhd.c 中, 主要调用mount_root()挂载根目录
 	sprintf(term, "TERM=con%dx%d", ORIG_VIDEO_COLS, ORIG_VIDEO_LINES);
 	(void) open("/dev/tty1",O_RDWR,0);
 	(void) dup(0);

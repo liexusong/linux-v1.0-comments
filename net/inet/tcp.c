@@ -924,7 +924,7 @@ tcp_write(struct sock *sk, unsigned char *from,
             copied += copy;
             len -= copy;
             sk->write_seq += copy;
-              }
+        }
         if ((skb->len - hdrlen) >= sk->mss ||
             (flags & MSG_OOB) ||
             !sk->packets_out)
@@ -1725,7 +1725,7 @@ tcp_conn_request(struct sock *sk, struct sk_buff *skb,
       "                  opt = %X, dev = %X)\n",
       sk, skb, daddr, saddr, opt, dev));
 
-  th = skb->h.th;
+  th = skb->h.th; // TCP头
 
   /* If the socket is dead, don't accept the connection. */
   if (!sk->dead) {
@@ -1753,6 +1753,7 @@ tcp_conn_request(struct sock *sk, struct sk_buff *skb,
    * and if the listening socket is destroyed before this is taken
    * off of the queue, this will take care of it.
    */
+  // 创建一个新的socket
   newsk = (struct sock *) kmalloc(sizeof(struct sock), GFP_ATOMIC);
   if (newsk == NULL) {
     /* just ignore the syn.  It will get retransmitted. */
@@ -1761,7 +1762,8 @@ tcp_conn_request(struct sock *sk, struct sk_buff *skb,
   }
 
   DPRINTF((DBG_TCP, "newsk = %X\n", newsk));
-  memcpy((void *)newsk,(void *)sk, sizeof(*newsk));
+  memcpy((void *)newsk,(void *)sk, sizeof(*newsk)); // 复制socket的内容
+  // 重置新socket的一些字段
   newsk->wback = NULL;
   newsk->wfront = NULL;
   newsk->rqueue = NULL;
@@ -1899,7 +1901,7 @@ tcp_conn_request(struct sock *sk, struct sk_buff *skb,
   t1->urg = 0;
   t1->psh = 0;
   t1->syn = 1;
-  t1->ack_seq = ntohl(skb->h.th->seq+1);
+  t1->ack_seq = ntohl(skb->h.th->seq+1); // ack = client_seq + 1
   t1->doff = sizeof(*t1)/4+1;
 
   ptr =(unsigned char *)(t1+1);
@@ -1909,8 +1911,9 @@ tcp_conn_request(struct sock *sk, struct sk_buff *skb,
   ptr[3] =(newsk->mtu) & 0xff;
 
   tcp_send_check(t1, daddr, saddr, sizeof(*t1)+4, newsk);
-  newsk->prot->queue_xmit(newsk, dev, buff, 0);
+  newsk->prot->queue_xmit(newsk, dev, buff, 0); // 发送ack包
 
+  // 添加连接超时定时器(默认2秒)
   reset_timer(newsk, TIME_WRITE /* -1 ? FIXME ??? */, TCP_CONNECT_TIME);
   skb->sk = newsk;
 
@@ -2007,7 +2010,7 @@ tcp_close(struct sock *sk, int timeout)
                first. Anyway it might work now */
             release_sock(sk);
             if (sk->state != TCP_CLOSE_WAIT)
-                    sk->state = TCP_ESTABLISHED;
+                sk->state = TCP_ESTABLISHED;
             reset_timer(sk, TIME_CLOSE, 100);
             return;
         }
@@ -3123,24 +3126,15 @@ tcp_rcv(struct sk_buff *skb, struct device *dev, struct options *opt,
     DPRINTF((DBG_TCP, "tcp.c: tcp_rcv skb = NULL\n"));
     return(0);
   }
-#if 0    /* FIXME: it's ok for protocol to be NULL */
-  if (!protocol) {
-    DPRINTF((DBG_TCP, "tcp.c: tcp_rcv protocol = NULL\n"));
-    return(0);
-  }
 
-  if (!opt) {    /* FIXME: it's ok for opt to be NULL */
-    DPRINTF((DBG_TCP, "tcp.c: tcp_rcv opt = NULL\n"));
-  }
-#endif
   if (!dev) {
     DPRINTF((DBG_TCP, "tcp.c: tcp_rcv dev = NULL\n"));
     return(0);
   }
-  th = skb->h.th;
+  th = skb->h.th; // TCP头部
 
   /* Find the socket. */
-  sk = get_sock(&tcp_prot, th->dest, saddr, th->source, daddr);
+  sk = get_sock(&tcp_prot, th->dest, saddr, th->source, daddr); // 通过端口和IP获取对应socket对象
   DPRINTF((DBG_TCP, "<<\n"));
   DPRINTF((DBG_TCP, "len = %d, redo = %d, skb=%X\n", len, redo, skb));
 
@@ -3287,12 +3281,7 @@ if (inet_debug == DBG_SLIP) printk("\rtcp_rcv: not in seq\n");
             release_sock(sk);
             return(0);
         }
-        if (
-#if 0
-        if ((opt && (opt->security != 0 ||
-                opt->compartment != 0)) ||
-#endif
-                 th->syn) {
+        if (th->syn) {
             sk->err = ECONNRESET;
             sk->state = TCP_CLOSE;
             sk->shutdown = SHUTDOWN_MASK;
@@ -3363,14 +3352,7 @@ if (inet_debug == DBG_SLIP) printk("\rtcp_rcv: not in seq\n");
             return(0);
         }
 
-        if (th->syn) {
-#if 0
-            if (opt->security != 0 || opt->compartment != 0) {
-                tcp_reset(daddr, saddr, th, prot, opt,dev);
-                release_sock(sk);
-                return(0);
-            }
-#endif
+        if (th->syn) { // listen状态必须接收syn信息, 否则就是出错
 
             /*
              * Now we just put the whole thing including
@@ -3407,20 +3389,7 @@ if (inet_debug == DBG_SLIP) printk("\rtcp_rcv: not in seq\n");
             release_sock(sk);
             return(0);
         }
-#if 0
-        if (opt->security != 0 || opt->compartment != 0) {
-            sk->err = ECONNRESET;
-            sk->state = TCP_CLOSE;
-            sk->shutdown = SHUTDOWN_MASK;
-            tcp_reset(daddr, saddr,  th, sk->prot, opt, dev);
-            if (!sk->dead) {
-                wake_up_interruptible(sk->sleep);
-            }
-            kfree_skb(skb, FREE_READ);
-            release_sock(sk);
-            return(0);
-        }
-#endif
+
         if (!th->ack) {
             if (th->syn) {
                 sk->state = TCP_SYN_RECV;
@@ -3465,7 +3434,7 @@ if (inet_debug == DBG_SLIP) printk("\rtcp_rcv: not in seq\n");
                     release_sock(sk);
                     return(0);
                 }
-                sk->state = TCP_ESTABLISHED;
+                sk->state = TCP_ESTABLISHED; // 既定状态
 
                 /*
                  * Now we need to finish filling out
@@ -3648,7 +3617,7 @@ int tcp_setsockopt(struct sock *sk, int level, int optname, char *optval, int op
  * the point when this call is done we typically don't yet know
  * which interface is going to be used
  */
-              if(val<1||val>MAX_WINDOW)
+            if(val<1||val>MAX_WINDOW)
                 return -EINVAL;
             sk->user_mss=val;
             return 0;

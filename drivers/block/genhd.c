@@ -177,7 +177,6 @@ static void setup_dev(struct gendisk *dev)
 	int j = dev->max_nr * dev->max_p;
 	int major = dev->major << 8;
 	int drive;
-	
 
 	for (i = 0 ; i < j; i++)  {
 		dev->part[i].start_sect = 0;
@@ -192,7 +191,7 @@ static void setup_dev(struct gendisk *dev)
 		dev->sizes[i] = dev->part[i].nr_sects >> (BLOCK_SIZE_BITS - 9);
 	blk_size[dev->major] = dev->sizes;
 }
-	
+
 /* This may be used only once, enforced by 'static int callable' */
 asmlinkage int sys_setup(void * BIOS)
 {
@@ -208,7 +207,7 @@ asmlinkage int sys_setup(void * BIOS)
 		setup_dev(p);
 		nr += p->nr_real;
 	}
-		
+
 	if (ramdisk_size)
 		rd_load();
 	mount_root();

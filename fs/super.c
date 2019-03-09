@@ -134,10 +134,10 @@ static struct super_block * read_super(dev_t dev,char *name,int flags,
 	if (!dev)
 		return NULL;
 	check_disk_change(dev);
-	s = get_super(dev);
+	s = get_super(dev); // 如果超级块已经创建
 	if (s)
 		return s;
-	if (!(type = get_fs_type(name))) {
+	if (!(type = get_fs_type(name))) { // 获取指定文件系统的操作方法
 		printk("VFS: on device %d/%d: get_fs_type(%s) failed\n",
 						MAJOR(dev), MINOR(dev), name);
 		return NULL;
@@ -150,7 +150,7 @@ static struct super_block * read_super(dev_t dev,char *name,int flags,
 	}
 	s->s_dev = dev;
 	s->s_flags = flags;
-	if (!type->read_super(s,data, silent)) {
+	if (!type->read_super(s,data, silent)) { // 使用指定文件系统的read_super()方法读取超级块
 		s->s_dev = 0;
 		return NULL;
 	}
@@ -519,7 +519,9 @@ void mount_root(void)
 	for (fs_type = file_systems; fs_type->read_super; fs_type++) {
 		if (!fs_type->requires_dev)
 			continue;
-		sb = read_super(ROOT_DEV,fs_type->name,root_mountflags,NULL,1);
+		// 从根设备中读取超级块(如果指定的文件系统读取成功, 表示根目录使用此文件系统格式化)
+		// 譬如minix文件系统, 调用的minix_read_super()函数读取
+		sb = read_super(ROOT_DEV,fs_type->name,root_mountflags,NULL,1); 
 		if (sb) {
 			inode = sb->s_mounted;
 			inode->i_count += 3 ;	/* NOTE! it is logically used 4 times, not 1 */

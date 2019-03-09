@@ -70,23 +70,23 @@ struct sock {
    * might as well say they all are.
    */
   volatile char                 inuse,
-                dead,
-                urginline,
-                intr,
-                blog,
-                done,
-                reuse,
-                keepopen,
-                linger,
-                delay_acks,
-                destroy,
-                ack_timed,
-                no_check,
-                zapped,    /* In ax25 & ipx means not linked */
-                broadcast,
-                nonagle;
+                                dead,
+                                urginline,
+                                intr,
+                                blog,
+                                done,
+                                reuse,
+                                keepopen,
+                                linger,
+                                delay_acks,
+                                destroy,
+                                ack_timed,
+                                no_check,
+                                zapped,    /* In ax25 & ipx means not linked */
+                                broadcast,
+                                nonagle;
   unsigned long                lingertime;
-  int                proc;
+  int                     proc;
   struct sock            *next;
   struct sock            *pair;
   struct sk_buff        *volatile send_tail;
@@ -96,15 +96,15 @@ struct sock {
   struct timer_list      partial_timer;
   long                   retransmits;
   struct sk_buff        *volatile wback,
-                *volatile wfront,
-                *volatile rqueue;
-  struct proto            *prot;
+                        *volatile wfront,
+                        *volatile rqueue;
+  struct proto              *prot;
   struct wait_queue        **sleep;
-  unsigned long            daddr;
-  unsigned long            saddr;
-  unsigned short           max_unacked;
-  unsigned short           window;
-  unsigned short           bytes_rcv;
+  unsigned long              daddr;
+  unsigned long              saddr;
+  unsigned short             max_unacked;
+  unsigned short             window;
+  unsigned short             bytes_rcv;
 /* mss is min(mtu, max_window) */
   unsigned short             mtu;       /* mss negotiated in the syn's */
   volatile unsigned short    mss;       /* current eff. mss - can change */
@@ -116,9 +116,9 @@ struct sock {
   volatile unsigned short    ssthresh;
   volatile unsigned short    packets_out;
   volatile unsigned short    shutdown;
-  volatile unsigned long    rtt;
-  volatile unsigned long    mdev;
-  volatile unsigned long    rto;
+  volatile unsigned long      rtt;
+  volatile unsigned long      mdev;
+  volatile unsigned long      rto;
 /* currently backoff isn't used, but I'm maintaining it in case
  * we want to go back to a backoff formula that needs it
  */
@@ -141,13 +141,13 @@ struct sock {
 /* Really we want to add a per protocol private area */
   ax25_address                ax25_source_addr,ax25_dest_addr;
   struct sk_buff *volatile    ax25_retxq[8];
-  char                ax25_state,ax25_vs,ax25_vr,ax25_lastrxnr,ax25_lasttxnr;
-  char                ax25_condition;
-  char                ax25_retxcnt;
-  char                ax25_xx;
-  char                ax25_retxqi;
-  char                ax25_rrtimer;
-  char                ax25_timer;
+  char                  ax25_state,ax25_vs,ax25_vr,ax25_lastrxnr,ax25_lasttxnr;
+  char                  ax25_condition;
+  char                  ax25_retxcnt;
+  char                  ax25_xx;
+  char                  ax25_retxqi;
+  char                  ax25_rrtimer;
+  char                  ax25_timer;
   ax25_digi            *ax25_digipeat;
 #endif
 /* IP 'private area' or will be eventually */

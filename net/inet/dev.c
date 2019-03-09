@@ -616,6 +616,7 @@ inet_bh(void *tmp)
     * the MAC header, if any (as indicated by its "length"
     * field).  Take care now!
     */
+       // 跳过物理层帧的头部
        skb->h.raw = skb->data + skb->dev->hard_header_len;
        skb->len -= skb->dev->hard_header_len;
 
