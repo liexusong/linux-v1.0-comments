@@ -67,7 +67,7 @@ int need_resched = 0;
 int hard_math = 0;		/* set by boot/head.S */
 int x86 = 0;			/* set by boot/head.S to 3 or 4 */
 int ignore_irq13 = 0;		/* set if exception 16 works */
-int wp_works_ok = 0;		/* set if paging hardware honours WP */ 
+int wp_works_ok = 0;		/* set if paging hardware honours WP */
 
 /*
  * Bus types ..
@@ -165,7 +165,7 @@ asmlinkage void math_state_restore(void)
 	if (last_task_used_math == current)
 		return;
 	timer_table[COPRO_TIMER].expires = jiffies+50;
-	timer_active |= 1<<COPRO_TIMER;	
+	timer_active |= 1<<COPRO_TIMER;
 	if (last_task_used_math)
 		__asm__("fnsave %0":"=m" (last_task_used_math->tss.i387));
 	else
@@ -578,7 +578,7 @@ static void timer_bh(void * unused)
 		cli();
 	}
 	sti();
-	
+
 	for (mask = 1, tp = timer_table+0 ; mask ; tp++,mask += mask) {
 		if (mask > timer_active)
 			break;
@@ -623,7 +623,7 @@ static void do_timer(struct pt_regs * regs)
 
 	if (time_adjust)
 	{
-	    /* We are doing an adjtime thing. 
+	    /* We are doing an adjtime thing.
 	     *
 	     * Modify the value of the tick for next time.
 	     * Note that a positive delta means we want the clock
@@ -638,7 +638,7 @@ static void do_timer(struct pt_regs * regs)
 	       time_adjust_step = -tickadj;
 	     else
 	       time_adjust_step = time_adjust;
-	     
+
 	    /* Reduce by this step the amount of time left  */
 	    time_adjust -= time_adjust_step;
 	}
@@ -815,14 +815,14 @@ void sched_init(void)
 	int i;
 	struct desc_struct * p;
 
-	bh_base[TIMER_BH].routine = timer_bh;
+	bh_base[TIMER_BH].routine = timer_bh;  // 设置时钟中断下半部处理函数为: timer_bh()
 	if (sizeof(struct sigaction) != 16)
 		panic("Struct sigaction MUST be 16 bytes");
-	set_tss_desc(gdt+FIRST_TSS_ENTRY,&init_task.tss);
-	set_ldt_desc(gdt+FIRST_LDT_ENTRY,&default_ldt,1);
-	set_system_gate(0x80,&system_call);
+	set_tss_desc(gdt+FIRST_TSS_ENTRY,&init_task.tss);  // 设置第一个tss段为init_task的tss段
+	set_ldt_desc(gdt+FIRST_LDT_ENTRY,&default_ldt,1);  // 设置第一个ldt段为default_ldt段
+	set_system_gate(0x80,&system_call);  // 设置系统调用的处理函数为: system_call()
 	p = gdt+2+FIRST_TSS_ENTRY;
-	for(i=1 ; i<NR_TASKS ; i++) {
+	for(i=1 ; i<NR_TASKS ; i++) {  // 清空所有tss和ldt段(除了第一个外)
 		task[i] = NULL;
 		p->a=p->b=0;
 		p++;
@@ -831,11 +831,12 @@ void sched_init(void)
 	}
 /* Clear NT, so that we won't have troubles with that later on */
 	__asm__("pushfl ; andl $0xffffbfff,(%esp) ; popfl");
-	load_TR(0);
-	load_ldt(0);
+	load_TR(0);    // 载入第一个tss段到tr寄存器
+	load_ldt(0);   // 载入第一个ldt段到ldt寄存器
+	// 设置时钟定时器频率
 	outb_p(0x34,0x43);		/* binary, mode 2, LSB/MSB, ch 0 */
 	outb_p(LATCH & 0xff , 0x40);	/* LSB */
 	outb(LATCH >> 8 , 0x40);	/* MSB */
-	if (request_irq(TIMER_IRQ,(void (*)(int)) do_timer)!=0)
+	if (request_irq(TIMER_IRQ,(void (*)(int)) do_timer)!=0) // 设置时钟中断的处理函数: do_timer()
 		panic("Could not allocate timer IRQ!");
 }

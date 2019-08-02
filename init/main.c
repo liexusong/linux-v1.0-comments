@@ -151,7 +151,7 @@ static char fpu_error = 0;
 
 static char command_line[80] = { 0, };
 
-char *get_options(char *str, int *ints) 
+char *get_options(char *str, int *ints)
 {
 	char *cur = str;
 	int i=1;
@@ -249,7 +249,7 @@ static void calibrate_delay(void)
 	}
 	printk("failed\n");
 }
-	
+
 
 /*
  * This is a simple kernel command line parsing function: it parses
@@ -311,7 +311,7 @@ static void parse_options(char *line)
 		/*
 		 * Then check if it's an environment variable or
 		 * an option.
-		 */	
+		 */
 		if (strchr(line,'=')) {
 			if (envs >= MAX_INIT_ENVS)
 				break;
@@ -355,6 +355,7 @@ asmlinkage void start_kernel(void)
  * enable them
  */
 	set_call_gate(&default_ldt,lcall7);
+
  	ROOT_DEV = ORIG_ROOT_DEV;
  	drive_info = DRIVE_INFO;
  	screen_info = SCREEN_INFO;
@@ -369,7 +370,7 @@ asmlinkage void start_kernel(void)
 #endif
 	if (MOUNT_ROOT_RDONLY)
 		root_mountflags |= MS_RDONLY;
-	if ((unsigned long)&end >= (1024*1024)) {
+	if ((unsigned long)&end >= (1024*1024)) { // 内核影像大于1m
 		memory_start = (unsigned long) &end;
 		low_memory_start = PAGE_SIZE;
 	} else {
@@ -377,12 +378,12 @@ asmlinkage void start_kernel(void)
 		low_memory_start = (unsigned long) &end;
 	}
 	low_memory_start = PAGE_ALIGN(low_memory_start);
-	memory_start = paging_init(memory_start,memory_end);
+	memory_start = paging_init(memory_start,memory_end); // 映射所有物理内存到虚拟内存地址(3GB~...处) (因为1.0版本不支持大于1GB的内存, 所以这里没问题)
 	if (strncmp((char*)0x0FFFD9, "EISA", 4) == 0)
 		EISA_bus = 1;
-	trap_init();
-	init_IRQ();
-	sched_init();
+	trap_init();  // 初始化一些陷阱门处理函数
+	init_IRQ();   // 初始化所有中断处理函数为: bad_interrupt()
+	sched_init(); // 设置一些系统运行的环境(比如时钟中断的频率和处理函数)
 	parse_options(command_line);
 #ifdef CONFIG_PROFILE
 	prof_buffer = (unsigned long *) memory_start;
@@ -390,20 +391,20 @@ asmlinkage void start_kernel(void)
 	prof_len >>= 2;
 	memory_start += prof_len * sizeof(unsigned long);
 #endif
-	memory_start = kmalloc_init(memory_start,memory_end);
+	memory_start = kmalloc_init(memory_start,memory_end); // 初始化内核小内存分配算法
 	memory_start = chr_dev_init(memory_start,memory_end); // 初始化字符设备
 	memory_start = blk_dev_init(memory_start,memory_end); // 初始化块设备
-	sti();
+	sti();  // 开启中断
 	calibrate_delay();
 #ifdef CONFIG_INET
-	memory_start = net_dev_init(memory_start,memory_end);
+	memory_start = net_dev_init(memory_start,memory_end); // 初始化网卡设备
 #endif
 #ifdef CONFIG_SCSI
 	memory_start = scsi_dev_init(memory_start,memory_end);
 #endif
-	memory_start = inode_init(memory_start,memory_end);
-	memory_start = file_table_init(memory_start,memory_end);
-	mem_init(low_memory_start,memory_start,memory_end);
+	memory_start = inode_init(memory_start,memory_end);       // 初始化inode缓存HashTable
+	memory_start = file_table_init(memory_start,memory_end);  // 初始化文件表
+	mem_init(low_memory_start,memory_start,memory_end);       // 初始化内存页管理结构
 	buffer_init();
 	time_init();
 	floppy_init();
@@ -412,7 +413,7 @@ asmlinkage void start_kernel(void)
 	ipc_init();
 #endif
 	sti();
-	
+
 	/*
 	 * check if exception 16 works correctly.. This is truly evil
 	 * code: it disables the high 8 interrupts to make sure that

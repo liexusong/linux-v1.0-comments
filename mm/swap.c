@@ -215,7 +215,7 @@ void swap_in(unsigned long *table_ptr)
 	if (!(page = get_free_page(GFP_KERNEL))) {
 		oom(current);
 		page = BAD_PAGE;
-	} else	
+	} else
 		read_swap_page(entry, (char *) page);
 	if (*table_ptr != entry) {
 		free_page(page);
@@ -408,7 +408,7 @@ static int swap_out(unsigned int priority)
 /*
  * Go through the page tables, searching for a user page that
  * we can swap out.
- * 
+ *
  * We now check that the process is swappable (normally only 'init'
  * is un-swappable), allowing high-priority processes which cannot be
  * swapped out (things like user-level device drivers (Not implemented)).
@@ -601,7 +601,7 @@ unsigned long __get_free_page(int priority)
 	}
 	save_flags(flag);
 repeat:
-	REMOVE_FROM_MEM_QUEUE(free_page_list,nr_free_pages);
+	REMOVE_FROM_MEM_QUEUE(free_page_list,nr_free_pages); // 如果这里返回就不会走后面的逻辑
 	if (priority == GFP_BUFFER)
 		return 0;
 	if (priority != GFP_ATOMIC)
@@ -642,7 +642,7 @@ repeat:
 				continue;
 			if (mem_map[MAP_NR(page)] & MAP_PAGE_RESERVED)
 				continue;
-			ppage = (unsigned long *) (page & PAGE_MASK);	
+			ppage = (unsigned long *) (page & PAGE_MASK);
 			for (pg = 0 ; pg < PTRS_PER_PAGE ; pg++,ppage++) {
 				page = *ppage;
 				if (!page)

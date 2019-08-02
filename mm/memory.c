@@ -97,7 +97,7 @@ static void free_one_table(unsigned long * page_dir)
 	page_table = (unsigned long *) (pg_table & PAGE_MASK);
 	for (j = 0 ; j < PTRS_PER_PAGE ; j++,page_table++) {
 		unsigned long pg = *page_table;
-		
+
 		if (!pg)
 			continue;
 		*page_table = 0;
@@ -897,7 +897,7 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long error_code)
 				bit = (address - 0xA0000) >> PAGE_SHIFT;
 				if (bit < 32)
 					current->screen_bitmap |= 1 << bit;
-			} else 
+			} else
 				user_esp = regs->esp;
 		}
 		if (error_code & 1)
@@ -1005,6 +1005,16 @@ void show_mem(void)
  * This routines also unmaps the page at virtual kernel address 0, so
  * that we can trap those pesky NULL-reference errors in the kernel.
  */
+/*
+ *  +-------+
+ *  | ..... |
+ *  +-------+              start_mem
+ *  | xxxxx | 768 -------> +-------+
+ *  +-------+              | ..... | \
+ *  | ..... |              +-------+  ---> 1024 entries
+ *  +-------+              | ..... | /
+ *                         +-------+
+ */
 unsigned long paging_init(unsigned long start_mem, unsigned long end_mem)
 {
 	unsigned long * pg_dir;
@@ -1023,9 +1033,9 @@ unsigned long paging_init(unsigned long start_mem, unsigned long end_mem)
 #endif
 	start_mem = PAGE_ALIGN(start_mem);
 	address = 0;
-	pg_dir = swapper_pg_dir;
+	pg_dir = swapper_pg_dir; // swapper进程页目录
 	while (address < end_mem) {
-		tmp = *(pg_dir + 768);		/* at virtual addr 0xC0000000 */
+		tmp = *(pg_dir + 768);		/* at virtual addr 0xC0000000 */ // 映射3GB后的4MB内存地址
 		if (!tmp) {
 			tmp = start_mem | PAGE_TABLE;
 			*(pg_dir + 768) = tmp;
@@ -1063,10 +1073,10 @@ void mem_init(unsigned long start_low_mem,
 	start_mem &= ~0x0000000f;
 	tmp = MAP_NR(end_mem);
 	mem_map = (unsigned short *) start_mem;
-	p = mem_map + tmp;
+	p = mem_map + tmp; // 每个页面需要一个字节来管理
 	start_mem = (unsigned long) p;
 	while (p > mem_map)
-		*--p = MAP_PAGE_RESERVED;
+		*--p = MAP_PAGE_RESERVED;  // 把所有内存页设置为保留
 	start_low_mem = PAGE_ALIGN(start_low_mem);
 	start_mem = PAGE_ALIGN(start_mem);
 	while (start_low_mem < 0xA0000) {
@@ -1082,7 +1092,7 @@ void mem_init(unsigned long start_low_mem,
 #endif
 	free_page_list = 0;
 	nr_free_pages = 0;
-	for (tmp = 0 ; tmp < end_mem ; tmp += PAGE_SIZE) {
+	for (tmp = 0 ; tmp < end_mem ; tmp += PAGE_SIZE) {  // 构建空闲内存页链表
 		if (mem_map[MAP_NR(tmp)]) {
 			if (tmp >= 0xA0000 && tmp < 0x100000)
 				reservedpages++;
@@ -1189,7 +1199,7 @@ void file_mmap_free(struct vm_area_struct * area)
 		iput(area->vm_inode);
 #if 0
 	if (area->vm_inode)
-		printk("Free inode %x:%d (%d)\n",area->vm_inode->i_dev, 
+		printk("Free inode %x:%d (%d)\n",area->vm_inode->i_dev,
 				 area->vm_inode->i_ino, area->vm_inode->i_count);
 #endif
 }
@@ -1198,8 +1208,8 @@ void file_mmap_free(struct vm_area_struct * area)
  * Compare the contents of the mmap entries, and decide if we are allowed to
  * share the pages
  */
-int file_mmap_share(struct vm_area_struct * area1, 
-		    struct vm_area_struct * area2, 
+int file_mmap_share(struct vm_area_struct * area1,
+		    struct vm_area_struct * area2,
 		    unsigned long address)
 {
 	if (area1->vm_inode != area2->vm_inode)

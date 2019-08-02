@@ -9,7 +9,7 @@
  * request-list, using interrupts to jump between functions. As
  * all the functions are called within interrupts, we may not
  * sleep. Special care is recommended.
- * 
+ *
  *  modified by Drew Eckhardt to check nr of hd's from the CMOS.
  *
  *  Thanks to Branko Lankester, lankeste@fwi.uva.nl, who found a bug
@@ -131,7 +131,7 @@ static int win_result(void)
 	if (i&1) {
 		hd_error = inb(HD_ERROR);
 		printk("HD: win_result: error = 0x%02x\n",hd_error);
-	}	
+	}
 	return 1;
 }
 
@@ -341,7 +341,7 @@ ok_to_read:
 	--CURRENT->current_nr_sectors;
 #ifdef DEBUG
 	printk("hd%d : sector = %d, %d remaining to buffer = %08x\n",
-		MINOR(CURRENT->dev), CURRENT->sector, i, CURRENT-> 
+		MINOR(CURRENT->dev), CURRENT->sector, i, CURRENT->
 		buffer);
 #endif
 	if (!i || (CURRENT->bh && !SUBSECTOR(i)))
@@ -492,7 +492,7 @@ repeat:
 			goto repeat;
 		sti();
 		return;
-	}	
+	}
 	if (CURRENT->cmd == WRITE) {
 		hd_out(dev,nsect,sec,head,cyl,WIN_WRITE,&write_intr);
 		if (reset)
@@ -593,7 +593,7 @@ static void hd_release(struct inode * inode, struct file * file)
 static void hd_geninit(void);
 
 static struct gendisk hd_gendisk = {
-	MAJOR_NR,	/* Major number */	
+	MAJOR_NR,	/* Major number */
 	"hd",		/* Major name */
 	6,		/* Bits to shift to get real from partition */
 	1 << 6,		/* Number of partitions per real */
@@ -605,7 +605,7 @@ static struct gendisk hd_gendisk = {
 	(void *) hd_info,	/* internal */
 	NULL		/* next */
 };
-	
+
 static void hd_interrupt(int unused)
 {
 	void (*handler)(void) = DEVICE_INTR;
@@ -641,7 +641,7 @@ static void hd_geninit(void)
 	unsigned char *BIOS = (unsigned char *) &drive_info;
 	int cmos_disks;
 
-	if (!NR_HD) {	   
+	if (!NR_HD) {
 		for (drive=0 ; drive<2 ; drive++) {
 			hd_info[drive].cyl = *(unsigned short *) BIOS;
 			hd_info[drive].head = *(2+BIOS);
@@ -653,25 +653,25 @@ static void hd_geninit(void)
 		}
 
 	/*
-		We querry CMOS about hard disks : it could be that 
+		We querry CMOS about hard disks : it could be that
 		we have a SCSI/ESDI/etc controller that is BIOS
 		compatable with ST-506, and thus showing up in our
 		BIOS table, but not register compatable, and therefore
 		not present in CMOS.
 
 		Furthurmore, we will assume that our ST-506 drives
-		<if any> are the primary drives in the system, and 
+		<if any> are the primary drives in the system, and
 		the ones reflected as drive 1 or 2.
 
 		The first drive is stored in the high nibble of CMOS
 		byte 0x12, the second in the low nibble.  This will be
-		either a 4 bit drive type or 0xf indicating use byte 0x19 
+		either a 4 bit drive type or 0xf indicating use byte 0x19
 		for an 8 bit type, drive 1, 0x1a for drive 2 in CMOS.
 
-		Needless to say, a non-zero value means we have 
+		Needless to say, a non-zero value means we have
 		an AT controller hard disk for that drive.
 
-		
+
 	*/
 
 		if ((cmos_disks = CMOS_READ(0x12)) & 0xf0)
@@ -724,7 +724,7 @@ static struct file_operations hd_fops = {
 
 unsigned long hd_init(unsigned long mem_start, unsigned long mem_end)
 {
-	if (register_blkdev(MAJOR_NR,"hd",&hd_fops)) {
+	if (register_blkdev(MAJOR_NR,"hd",&hd_fops)) { // 注册块设备处理函数
 		printk("Unable to get major %d for harddisk\n",MAJOR_NR);
 		return mem_start;
 	}
