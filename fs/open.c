@@ -178,7 +178,7 @@ asmlinkage int sys_access(const char * filename,int mode)
 	 * XXX we are doing this test last because we really should be
 	 * swapping the effective with the real user id (temporarily),
 	 * and then calling suser() routine.  If we do call the
-	 * suser() routine, it needs to be called last. 
+	 * suser() routine, it needs to be called last.
 	 *
 	 * XXX nope.  suser() is inappropriate and swapping the ids while
 	 * decomposing the path would be racy.
@@ -385,7 +385,7 @@ int do_open(const char * filename,int flags,int mode)
 	if (fd>=NR_OPEN)
 		return -EMFILE;
 	FD_CLR(fd,&current->close_on_exec);
-	f = get_empty_filp();
+	f = get_empty_filp(); // 获取一个空闲的file结构
 	if (!f)
 		return -ENFILE;
 	current->filp[fd] = f;
@@ -407,7 +407,7 @@ int do_open(const char * filename,int flags,int mode)
 	f->f_reada = 0;
 	f->f_op = NULL;
 	if (inode->i_op)
-		f->f_op = inode->i_op->default_file_ops;
+		f->f_op = inode->i_op->default_file_ops; // 设置file的f_op字段
 	if (f->f_op && f->f_op->open) { // 如果是minix文件系统, open为空
 		error = f->f_op->open(inode,f);
 		if (error) {
@@ -417,7 +417,7 @@ int do_open(const char * filename,int flags,int mode)
 			return error;
 		}
 	}
-	f->f_flags &= ~(O_CREAT | O_EXCL | O_NOCTTY | O_TRUNC);
+	f->f_flags &= ~(O_CREAT|O_EXCL|O_NOCTTY|O_TRUNC);
 	return (fd);
 }
 
@@ -426,7 +426,7 @@ asmlinkage int sys_open(const char * filename,int flags,int mode)
 	char * tmp;
 	int error;
 
-	error = getname(filename, &tmp);
+	error = getname(filename, &tmp); // 获取文件名
 	if (error)
 		return error;
 	error = do_open(tmp,flags,mode);
@@ -463,7 +463,7 @@ int close_fp(struct file *filp, unsigned int fd)
 }
 
 asmlinkage int sys_close(unsigned int fd)
-{	
+{
 	struct file * filp;
 
 	if (fd >= NR_OPEN)

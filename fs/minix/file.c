@@ -81,19 +81,19 @@ static int minix_file_read(struct inode * inode, struct file * filp, char * buf,
 		printk("minix_file_read: mode = %07o\n",inode->i_mode);
 		return -EINVAL;
 	}
-	offset = filp->f_pos;
-	size = inode->i_size;
+	offset = filp->f_pos; // 要读取的文件偏移量
+	size = inode->i_size; // 文件大小
 	if (offset > size)
 		left = 0;
 	else
-		left = size - offset;
+		left = size - offset; // 剩余大小
 	if (left > count)
 		left = count;
 	if (left <= 0)
 		return 0;
 	read = 0;
-	block = offset >> BLOCK_SIZE_BITS;
-	offset &= BLOCK_SIZE-1;
+	block = offset >> BLOCK_SIZE_BITS; // 块的索引号
+	offset &= BLOCK_SIZE-1; // 有可能偏移量不是块大小对齐, 这个时候需要计算偏移量
 	size = (size + (BLOCK_SIZE-1)) >> BLOCK_SIZE_BITS;
 	blocks = (left + offset + BLOCK_SIZE - 1) >> BLOCK_SIZE_BITS;
 	bhb = bhe = buflist;
@@ -150,7 +150,7 @@ static int minix_file_read(struct inode * inode, struct file * filp, char * buf,
 					break;
 				}
 			}
-			if (left < BLOCK_SIZE - offset)
+			if (left < BLOCK_SIZE - offset) // BLOCK_SIZE - offset 为有效数据
 				chars = left;
 			else
 				chars = BLOCK_SIZE - offset;

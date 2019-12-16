@@ -84,7 +84,7 @@ asmlinkage int sys_read(unsigned int fd,char * buf,unsigned int count)
 	error = verify_area(VERIFY_WRITE,buf,count);
 	if (error)
 		return error;
-	return file->f_op->read(inode,file,buf,count);
+	return file->f_op->read(inode,file,buf,count); // 对应minix文件系统为 minix_file_read()
 }
 
 asmlinkage int sys_write(unsigned int fd,char * buf,unsigned int count)
@@ -92,7 +92,7 @@ asmlinkage int sys_write(unsigned int fd,char * buf,unsigned int count)
 	int error;
 	struct file * file;
 	struct inode * inode;
-	
+
 	if (fd>=NR_OPEN || !(file=current->filp[fd]) || !(inode=file->f_inode))
 		return -EBADF;
 	if (!(file->f_mode & 2))

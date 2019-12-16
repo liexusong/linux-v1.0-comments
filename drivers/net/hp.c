@@ -114,7 +114,7 @@ int hpprobe1(struct device *dev, int ioaddr)
 
 	printk("%s: %s (ID %02x) at %#3x,", dev->name, name, board_id, ioaddr);
 
-	for(i = 0; i < ETHER_ADDR_LEN; i++)
+	for(i = 0; i < ETHER_ADDR_LEN; i++) // 打印网卡物理地址
 		printk(" %2.2x", station_addr[i] = inb(ioaddr + i));
 
 	/* Snarf the interrupt now.  Someday this could be moved to open(). */
@@ -144,7 +144,7 @@ int hpprobe1(struct device *dev, int ioaddr)
 	} else {
 		if (dev->irq == 2)
 			dev->irq = 9;
-		if (irqaction(dev->irq, &ei_sigaction)) {
+		if (irqaction(dev->irq, &ei_sigaction)) { // 申请中断处理线
 			printk (" unable to get IRQ %d.\n", dev->irq);
 			return EBUSY;
 		}
@@ -187,7 +187,7 @@ hp_reset_8390(struct device *dev)
 
 	outb_p(saved_config, hp_base + HP_CONFIGURE);
 	SLOW_DOWN_IO; SLOW_DOWN_IO;
-	
+
 	if ((inb_p(hp_base+NIC_OFFSET+EN0_ISR) & ENISR_RESET) == 0)
 		printk("%s: hp_reset_8390() did not complete.\n", dev->name);
 

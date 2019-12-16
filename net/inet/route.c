@@ -84,7 +84,7 @@ static void rt_del(unsigned long dst)
 		if (rt_loopback == r)
 			rt_loopback = NULL;
 		kfree_s(r, sizeof(struct rtable));
-	} 
+	}
 	restore_flags(flags);
 }
 
@@ -111,7 +111,7 @@ void rt_flush(struct device *dev)
 		if (rt_loopback == r)
 			rt_loopback = NULL;
 		kfree_s(r, sizeof(struct rtable));
-	} 
+	}
 	restore_flags(flags);
 }
 
@@ -163,8 +163,21 @@ static inline struct device * get_gw_dev(unsigned long gw)
 /*
  * rewrote rt_add(), as the old one was weird. Linus
  */
-void rt_add(short flags, unsigned long dst, unsigned long mask,
-	unsigned long gw, struct device *dev)
+/*
+dst             gw              mask            flags  .      .    .    dev
+-----------------------------------------------------------------------------
+Destination     Gateway         Genmask         Flags  Metric Ref  Use  Iface
+-----------------------------------------------------------------------------
+192.168.0.0     *               255.255.255.0   U      0      0    0    eth0
+
+× Destination：目标网段或者主机
+× Gateway：网关地址，“*” 表示目标是本主机所属的网络，不需要路由
+× Genmask：网络掩码
+× Flags：标记
+× Iface：该路由表项对应的输出接口
+*/
+void rt_add(short flags, unsigned long dst,
+	unsigned long mask, unsigned long gw, struct device *dev)
 {
 	struct rtable *r, *rt;
 	struct rtable **rp;
@@ -172,8 +185,8 @@ void rt_add(short flags, unsigned long dst, unsigned long mask,
 
 	if (flags & RTF_HOST) {
 		mask = 0xffffffff;
-	} else if (!mask) {
-		if (!((dst ^ dev->pa_addr) & dev->pa_mask)) {
+	} else if (!mask) { // 如果没有指定子掩码
+		if (!((dst ^ dev->pa_addr) & dev->pa_mask)) { // 属于本设备的网段
 			mask = dev->pa_mask;
 			flags &= ~RTF_GATEWAY;
 			if (flags & RTF_DYNAMIC) {
@@ -181,18 +194,21 @@ void rt_add(short flags, unsigned long dst, unsigned long mask,
 				return;
 			}
 		} else
-			mask = guess_mask(dst, dev);
+			mask = guess_mask(dst, dev); // 自动获取子掩码
 		dst &= mask;
 	}
+
 	if (gw == dev->pa_addr)
 		flags &= ~RTF_GATEWAY;
+
 	if (flags & RTF_GATEWAY) {
 		/* don't try to add a gateway we can't reach.. */
-		if (dev != get_gw_dev(gw))
+		if (dev != get_gw_dev(gw)) // 根据网关获取设备对象
 			return;
 		flags |= RTF_GATEWAY;
 	} else
 		gw = 0;
+
 	/* Allocate an entry. */
 	rt = (struct rtable *) kmalloc(sizeof(struct rtable), GFP_ATOMIC);
 	if (rt == NULL) {
@@ -200,12 +216,12 @@ void rt_add(short flags, unsigned long dst, unsigned long mask,
 		return;
 	}
 	memset(rt, 0, sizeof(struct rtable));
-	rt->rt_flags = flags | RTF_UP;
-	rt->rt_dst = dst;
-	rt->rt_dev = dev;
+	rt->rt_flags   = flags | RTF_UP;
+	rt->rt_dst     = dst;
+	rt->rt_dev     = dev;
 	rt->rt_gateway = gw;
-	rt->rt_mask = mask;
-	rt->rt_mtu = dev->mtu;
+	rt->rt_mask    = mask;
+	rt->rt_mtu     = dev->mtu;
 	rt_print(rt);
 	/*
 	 * What we have to do is loop though this until we have
@@ -335,7 +351,7 @@ rt_get_info(char *buffer)
 
   pos += sprintf(pos,
 		 "Iface\tDestination\tGateway \tFlags\tRefCnt\tUse\tMetric\tMask\n");
-  
+
   /* This isn't quite right -- r->rt_dst is a struct! */
   for (r = rt_base; r != NULL; r = r->rt_next) {
         pos += sprintf(pos, "%s\t%08lX\t%08lX\t%02X\t%d\t%lu\t%d\t%08lX\n",
@@ -356,11 +372,11 @@ struct rtable * rt_route(unsigned long daddr, struct options *opt)
 	struct rtable *rt;
 
 	for (rt = rt_base; rt != NULL || early_out ; rt = rt->rt_next) {
-		if (!((rt->rt_dst ^ daddr) & rt->rt_mask))
+		if (!((rt->rt_dst ^ daddr) & rt->rt_mask)) // 路由匹配成功
 			break;
 		/* broadcast addresses can be special cases.. */
 		if ((rt->rt_dev->flags & IFF_BROADCAST) &&
-		     rt->rt_dev->pa_brdaddr == daddr)
+		     rt->rt_dev->pa_brdaddr == daddr) // 如果地址是设备的广播地址, 匹配成功
 			break;
 	}
 	if (daddr == rt->rt_dev->pa_addr) {

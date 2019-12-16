@@ -674,7 +674,7 @@ static void hd_geninit(void)
 
 	*/
 
-		if ((cmos_disks = CMOS_READ(0x12)) & 0xf0)
+		if ((cmos_disks = CMOS_READ(0x12)) & 0xf0) // 从CMOS中读取磁盘的个数
 			if (cmos_disks & 0x0f)
 				NR_HD = 2;
 			else

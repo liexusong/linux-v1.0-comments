@@ -66,7 +66,7 @@ void minix_put_super(struct super_block *sb)
 	return;
 }
 
-static struct super_operations minix_sops = { 
+static struct super_operations minix_sops = {
 	minix_read_inode,
 	NULL,
 	minix_write_inode,
@@ -112,7 +112,7 @@ int minix_remount (struct super_block * sb, int * flags, char * data)
 }
 
 
-struct super_block *minix_read_super(struct super_block *s,void *data, 
+struct super_block *minix_read_super(struct super_block *s,void *data,
 				     int silent)
 {
 	struct buffer_head *bh;
@@ -277,7 +277,7 @@ static struct buffer_head * inode_getblk(struct inode * inode, int nr, int creat
 	unsigned short *p;
 	struct buffer_head * result;
 
-	p = inode->u.minix_i.i_data + nr;
+	p = inode->u.minix_i.i_data + nr; // 数据块的真实索引
 repeat:
 	tmp = *p;
 	if (tmp) {
@@ -304,7 +304,7 @@ repeat:
 	return result;
 }
 
-static struct buffer_head * block_getblk(struct inode * inode, 
+static struct buffer_head * block_getblk(struct inode * inode,
 	struct buffer_head * bh, int nr, int create)
 {
 	int tmp;

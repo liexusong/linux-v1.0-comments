@@ -166,7 +166,7 @@ static int ext2_file_read (struct inode * inode, struct file * filp,
 			 * Finish off all I/O that has actually completed
 			 */
 			if (*bhe) {
-				wait_on_buffer (*bhe);
+				wait_on_buffer (*bhe); // 等待数据缓存读取成功
 				if (!(*bhe)->b_uptodate) { /* read error? */
 				        brelse(*bhe);
 					if (++bhe == &buflist[NBUF])

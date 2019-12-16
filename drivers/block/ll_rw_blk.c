@@ -265,7 +265,7 @@ repeat:
 			    	req->bh = bh;
 			    	sti();
 			    	return;
-			}    
+			}
 
 			req = req->next;
 		}
@@ -449,7 +449,7 @@ void ll_rw_swap_file(int rw, int dev, unsigned int *b, int nb, char *buf)
 		printk("Can't swap to read-only device 0x%X\n",dev);
 		return;
 	}
-	
+
 	buffersize = PAGE_SIZE / nb;
 
 	for (i=0; i<nb; i++, buf += buffersize)

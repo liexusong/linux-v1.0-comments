@@ -11,7 +11,7 @@
  *		Fred N. van Kempen, <waltje@uWalt.NL.Mugnet.ORG>
  *		Mark Evans, <evansmp@uhura.aston.ac.uk>
  *
- * Fixes:	
+ * Fixes:
  *		Alan Cox	:	Generic queue usage.
  *		Gerhard Koerting:	ICMP addressing corrected
  *		Alan Cox	:	Use tos/ttl settings
@@ -56,7 +56,7 @@ struct icmp_err icmp_err_convert[] = {
   { EOPNOTSUPP,		0 },	/*	ICMP_SR_FAILED		*/
   { ENETUNREACH,	1 },	/* 	ICMP_NET_UNKNOWN	*/
   { EHOSTDOWN,		1 },	/*	ICMP_HOST_UNKNOWN	*/
-  { ENONET,		1 },	/*	ICMP_HOST_ISOLATED	*/
+  { ENONET,   		1 },	/*	ICMP_HOST_ISOLATED	*/
   { ENETUNREACH,	1 },	/*	ICMP_NET_ANO		*/
   { EHOSTUNREACH,	1 },	/*	ICMP_HOST_ANO		*/
   { EOPNOTSUPP,		0 },	/*	ICMP_NET_UNR_TOS	*/
@@ -93,9 +93,9 @@ icmp_send(struct sk_buff *skb_in, int type, int code, struct device *dev)
   len = sizeof(struct sk_buff) + dev->hard_header_len +
 	sizeof(struct iphdr) + sizeof(struct icmphdr) +
 	sizeof(struct iphdr) + 8;	/* amount of header to return */
-	   
+
   skb = (struct sk_buff *) alloc_skb(len, GFP_ATOMIC);
-  if (skb == NULL) 
+  if (skb == NULL)
   	return;
 
   skb->sk = NULL;
@@ -393,7 +393,7 @@ icmp_rcv(struct sk_buff *skb1, struct device *dev, struct options *opt,
 	case ICMP_REDIRECT:
 		icmp_redirect(icmph, skb1, dev);
 		return(0);
-	case ICMP_ECHO: 
+	case ICMP_ECHO:
 		icmp_echo(icmph, skb1, dev, saddr, daddr, len, opt);
 		return 0;
 	case ICMP_ECHOREPLY:

@@ -63,18 +63,18 @@ struct options {
 
 
 struct iphdr {
-  unsigned char   ihl:4,
-                  version:4;
-  unsigned char   tos;
-  unsigned short  tot_len;
-  unsigned short  id;
-  unsigned short  frag_off;
-  unsigned char   ttl;
-  unsigned char   protocol;
-  unsigned short  check;
-  unsigned long   saddr;
-  unsigned long   daddr;
-  /*The options start here. */
+  unsigned char   ihl:4,       // 首部长度
+                  version:4;   // 版本号
+  unsigned char   tos;         // 服务类型
+  unsigned short  tot_len;     // 总长度
+  unsigned short  id;          // 标识(分片时使用)
+  unsigned short  frag_off;    // 片偏移
+  unsigned char   ttl;         // 生存时间
+  unsigned char   protocol;    // 上层协议类型
+  unsigned short  check;       // 首部校验和
+  unsigned long   saddr;       // 源IP地址
+  unsigned long   daddr;       // 目标IP地址
+  /*The options start here. */ // 选项: 不定长，最多40个字节
 };
 
 

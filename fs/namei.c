@@ -106,7 +106,7 @@ int lookup(struct inode * dir,const char * name, int len,
 		if (dir == current->root) { // 如果当前目录已经是根目录
 			*result = dir;
 			return 0;
-		} else if ((sb = dir->i_sb) && (dir == sb->s_mounted)) {
+		} else if ((sb = dir->i_sb) && (dir == sb->s_mounted)) { // 如果当前目录是个挂载点, 那么上一级需要切换文件系统
 			sb = dir->i_sb;
 			iput(dir);
 			dir = sb->s_covered;
@@ -155,6 +155,7 @@ int follow_link(struct inode * dir, struct inode * inode,
  * dir_namei() returns the inode of the directory of the
  * specified name, and the name within that directory.
  */
+// 根据pathname获取最后一级目录的inode和返回文件名(name和namelen)
 static int dir_namei(const char * pathname, int * namelen, const char ** name,
 	struct inode * base, struct inode ** res_inode)
 {
@@ -164,7 +165,7 @@ static int dir_namei(const char * pathname, int * namelen, const char ** name,
 	struct inode * inode;
 
 	*res_inode = NULL;
-	if (!base) {
+	if (!base) { // 从当前目录开始查找
 		base = current->pwd;
 		base->i_count++;
 	}
@@ -175,7 +176,7 @@ static int dir_namei(const char * pathname, int * namelen, const char ** name,
 		base->i_count++;
 	}
 	while (1) {
-		thisname = pathname;
+		thisname = pathname; // 当前路径的节点
 		for(len=0;(c = *(pathname++))&&(c != '/');len++) // 找到下一个目录
 			/* nothing */ ;
 		if (!c)
@@ -283,7 +284,7 @@ int open_namei(const char * pathname, int flag, int mode,
 
 	mode &= S_IALLUGO & ~current->umask;
 	mode |= S_IFREG;
-	error = dir_namei(pathname,&namelen,&basename,base,&dir);
+	error = dir_namei(pathname,&namelen,&basename,base,&dir); // 获取最后一级目录inode和文件名
 	if (error)
 		return error;
 	if (!namelen) {			/* special case: '/usr/' etc */ // 没有文件名, 直接返回目录的inode
@@ -308,7 +309,7 @@ int open_namei(const char * pathname, int flag, int mode,
 				iput(inode);
 				error = -EEXIST;
 			}
-		} else if (!permission(dir,MAY_WRITE | MAY_EXEC)) // 如果目录没有写权限
+		} else if (!permission(dir, MAY_WRITE|MAY_EXEC)) // 如果目录没有写权限
 			error = -EACCES;
 		else if (!dir->i_op || !dir->i_op->create) // 没有创建文件的方法
 			error = -EACCES;
@@ -360,7 +361,7 @@ int open_namei(const char * pathname, int flag, int mode,
  				iput(inode);
  				return -ETXTBSY;
  			}
-			for(mpnt = (*p)->mmap; mpnt; mpnt = mpnt->vm_next) {
+			for(mpnt = (*p)->mmap; mpnt; mpnt = mpnt->vm_next) { // inode被其他进程映射了
 				if (mpnt->vm_page_prot & PAGE_RW)
 					continue;
 				if (inode == mpnt->vm_inode) {
@@ -727,7 +728,7 @@ static int do_rename(const char * oldname, const char * newname)
 		return -EPERM;
 	}
 	down(&new_dir->i_sem);
-	error = old_dir->i_op->rename(old_dir, old_base, old_len, 
+	error = old_dir->i_op->rename(old_dir, old_base, old_len,
 		new_dir, new_base, new_len);
 	up(&new_dir->i_sem);
 	return error;

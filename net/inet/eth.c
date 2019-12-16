@@ -10,14 +10,14 @@
  * Authors:    Ross Biro, <bir7@leland.Stanford.Edu>
  *        Fred N. van Kempen, <waltje@uWalt.NL.Mugnet.ORG>
  *        Mark Evans, <evansmp@uhura.aston.ac.uk>
- * 
+ *
  * Fixes:
  *        Mr Linux    : Arp problems
  *        Alan Cox    : Generic queue tidyup (very tiny here)
  *        Alan Cox    : eth_header ntohs should be htons
  *        Alan Cox    : eth_rebuild_header missing an htons and
  *                  minor other things.
- *        Tegge        : Arp bug fixes. 
+ *        Tegge        : Arp bug fixes.
  *
  *        This program is free software; you can redistribute it and/or
  *        modify it under the terms of the GNU General Public License
@@ -125,13 +125,13 @@ eth_header(unsigned char *buff, struct device *dev, unsigned short type,
   cli();
   memcpy(eth->h_source, &saddr, 4);
   /* No. Ask ARP to resolve the Ethernet address. */
-  if (arp_find(eth->h_dest, daddr, dev, dev->pa_addr)) 
+  if (arp_find(eth->h_dest, daddr, dev, dev->pa_addr))
   {
         sti();
         if(type!=ETH_P_IP)
             printk("Erk: protocol %X got into an arp request state!\n",type);
     return(-dev->hard_header_len);
-  } 
+  }
   else
   {
       memcpy(eth->h_source,dev->dev_addr,dev->addr_len);    /* This was missing causing chaos if the

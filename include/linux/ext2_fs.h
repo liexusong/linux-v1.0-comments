@@ -158,6 +158,7 @@ struct ext2_old_group_desc
 	unsigned short bg_free_inodes_count;	/* Free inodes count */
 };
 
+// 组描述结构
 struct ext2_group_desc
 {
 	unsigned long  bg_block_bitmap;		/* Blocks bitmap block */
@@ -174,9 +175,9 @@ struct ext2_group_desc
  * Macro-instructions used to manage group descriptors
  */
 #ifdef __KERNEL__
-# define EXT2_BLOCKS_PER_GROUP(s)	((s)->u.ext2_sb.s_blocks_per_group)
-# define EXT2_DESC_PER_BLOCK(s)		((s)->u.ext2_sb.s_desc_per_block)
-# define EXT2_INODES_PER_GROUP(s)	((s)->u.ext2_sb.s_inodes_per_group)
+# define EXT2_BLOCKS_PER_GROUP(s)	((s)->u.ext2_sb.s_blocks_per_group) // 每个组有多少个数据块
+# define EXT2_DESC_PER_BLOCK(s)		((s)->u.ext2_sb.s_desc_per_block)   // 每个数据块有多少个组描述符
+# define EXT2_INODES_PER_GROUP(s)	((s)->u.ext2_sb.s_inodes_per_group) // 每个组有多少个inode
 #else
 # define EXT2_BLOCKS_PER_GROUP(s)	((s)->s_blocks_per_group)
 # define EXT2_DESC_PER_BLOCK(s)		(EXT2_BLOCK_SIZE(s) / sizeof (struct ext2_group_desc))
@@ -190,7 +191,7 @@ struct ext2_group_desc
 #define	EXT2_IND_BLOCK			EXT2_NDIR_BLOCKS
 #define	EXT2_DIND_BLOCK			(EXT2_IND_BLOCK + 1)
 #define	EXT2_TIND_BLOCK			(EXT2_DIND_BLOCK + 1)
-#define	EXT2_N_BLOCKS			(EXT2_TIND_BLOCK + 1)
+#define	EXT2_N_BLOCKS			(EXT2_TIND_BLOCK + 1)  // 15 blocks
 
 /*
  * Inode flags
@@ -211,10 +212,11 @@ struct ext2_group_desc
 /*
  * Structure of an inode on the disk
  */
+// inode结构
 struct ext2_inode {
 	unsigned short i_mode;		/* File mode */
 	unsigned short i_uid;		/* Owner Uid */
-	unsigned long  i_size;		/* Size in bytes */
+	unsigned long  i_size;		/* Size in bytes */ // 文件大小
 	unsigned long  i_atime;		/* Access time */
 	unsigned long  i_ctime;		/* Creation time */
 	unsigned long  i_mtime;		/* Modification time */
@@ -275,6 +277,7 @@ struct ext2_inode {
 /*
  * Structure of the super block
  */
+// 超级块结构
 struct ext2_super_block {
 	unsigned long  s_inodes_count;	/* Inodes count */
 	unsigned long  s_blocks_count;	/* Blocks count */
@@ -305,6 +308,7 @@ struct ext2_super_block {
  */
 #define EXT2_NAME_LEN 255
 
+// 目录项结构
 struct ext2_dir_entry {
 	unsigned long  inode;			/* Inode number */
 	unsigned short rec_len;			/* Directory entry length */

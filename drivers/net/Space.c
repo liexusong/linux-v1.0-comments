@@ -1,36 +1,36 @@
 /*
- * INET		An implementation of the TCP/IP protocol suite for the LINUX
- *		operating system.  INET is implemented using the  BSD Socket
- *		interface as the means of communication with the user level.
+ * INET        An implementation of the TCP/IP protocol suite for the LINUX
+ *        operating system.  INET is implemented using the  BSD Socket
+ *        interface as the means of communication with the user level.
  *
- *		Holds initial configuration information for devices.
+ *        Holds initial configuration information for devices.
  *
- * NOTE:	This file is a nice idea, but its current format does not work
- *		well for drivers that support multiple units, like the SLIP
- *		driver.  We should actually have only one pointer to a driver
- *		here, with the driver knowing how many units it supports.
- *		Currently, the SLIP driver abuses the "base_addr" integer
- *		field of the 'device' structure to store the unit number...
- *		-FvK
+ * NOTE:    This file is a nice idea, but its current format does not work
+ *        well for drivers that support multiple units, like the SLIP
+ *        driver.  We should actually have only one pointer to a driver
+ *        here, with the driver knowing how many units it supports.
+ *        Currently, the SLIP driver abuses the "base_addr" integer
+ *        field of the 'device' structure to store the unit number...
+ *        -FvK
  *
- * Version:	@(#)Space.c	1.0.7	08/12/93
+ * Version:    @(#)Space.c    1.0.7    08/12/93
  *
- * Authors:	Ross Biro, <bir7@leland.Stanford.Edu>
- *		Fred N. van Kempen, <waltje@uWalt.NL.Mugnet.ORG>
- *		Donald J. Becker, <becker@super.org>
+ * Authors:    Ross Biro, <bir7@leland.Stanford.Edu>
+ *        Fred N. van Kempen, <waltje@uWalt.NL.Mugnet.ORG>
+ *        Donald J. Becker, <becker@super.org>
  *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
+ *        This program is free software; you can redistribute it and/or
+ *        modify it under the terms of the GNU General Public License
+ *        as published by the Free Software Foundation; either version
+ *        2 of the License, or (at your option) any later version.
  */
 #include <linux/config.h>
 #include <linux/ddi.h>
 #include "dev.h"
 
-#define LOOPBACK			/* always present, right?	*/
+#define LOOPBACK            /* always present, right?    */
 
-#define	NEXT_DEV	NULL
+#define    NEXT_DEV    NULL
 
 
 /* A unifed ethernet device probe.  This is the easiest way to have every
@@ -64,59 +64,59 @@ ethif_probe(struct device *dev)
     short base_addr = dev->base_addr;
 
     if (base_addr < 0  ||  base_addr == 1)
-	return 1;		/* ENXIO */
+    return 1;        /* ENXIO */
 
     if (1
 #if defined(CONFIG_ULTRA)
-	&& ultra_probe(dev)
+    && ultra_probe(dev)
 #endif
 #if defined(CONFIG_WD80x3) || defined(WD80x3)
-	&& wd_probe(dev)
+    && wd_probe(dev)
 #endif
-#if defined(CONFIG_EL2) || defined(EL2)	/* 3c503 */
-	&& el2_probe(dev)
+#if defined(CONFIG_EL2) || defined(EL2)    /* 3c503 */
+    && el2_probe(dev)
 #endif
 #if defined(CONFIG_NE2000) || defined(NE2000)
-	&& ne_probe(dev)
+    && ne_probe(dev)
 #endif
 #if defined(CONFIG_HPLAN) || defined(HPLAN)
-	&& hp_probe(dev)
+    && hp_probe(dev)
 #endif
 #ifdef CONFIG_AT1500
-	&& at1500_probe(dev)
+    && at1500_probe(dev)
 #endif
 #ifdef CONFIG_AT1700
-	&& at1700_probe(dev)
+    && at1700_probe(dev)
 #endif
-#ifdef CONFIG_EL3		/* 3c509 */
-	&& el3_probe(dev)
+#ifdef CONFIG_EL3        /* 3c509 */
+    && el3_probe(dev)
 #endif
-#ifdef CONFIG_ZNET		/* Zenith Z-Note and some IBM Thinkpads. */
-	&& znet_probe(dev)
+#ifdef CONFIG_ZNET        /* Zenith Z-Note and some IBM Thinkpads. */
+    && znet_probe(dev)
 #endif
-#ifdef CONFIG_EEXPRESS		/* Intel EtherExpress */
-	&& express_probe(dev)
+#ifdef CONFIG_EEXPRESS        /* Intel EtherExpress */
+    && express_probe(dev)
 #endif
-#ifdef CONFIG_DEPCA		/* DEC DEPCA */
-	&& depca_probe(dev)
+#ifdef CONFIG_DEPCA        /* DEC DEPCA */
+    && depca_probe(dev)
 #endif
-#ifdef CONFIG_EL1		/* 3c501 */
-	&& el1_probe(dev)
+#ifdef CONFIG_EL1        /* 3c501 */
+    && el1_probe(dev)
 #endif
-#ifdef CONFIG_EL16		/* 3c507 */
-	&& el16_probe(dev)
+#ifdef CONFIG_EL16        /* 3c507 */
+    && el16_probe(dev)
 #endif
-#ifdef CONFIG_ELPLUS		/* 3c505 */
-	&& elplus_probe(dev)
+#ifdef CONFIG_ELPLUS        /* 3c505 */
+    && elplus_probe(dev)
 #endif
-#ifdef CONFIG_AC3200		/* Ansel Communications EISA 3200. */
-	&& ac3200_probe(dev)
+#ifdef CONFIG_AC3200        /* Ansel Communications EISA 3200. */
+    && ac3200_probe(dev)
 #endif
-#ifdef CONFIG_E2100		/* Cabletron E21xx series. */
-	&& e2100_probe(dev)
+#ifdef CONFIG_E2100        /* Cabletron E21xx series. */
+    && e2100_probe(dev)
 #endif
-	&& 1 ) {
-	return 1;	/* -ENODEV or -EAGAIN would be more accurate. */
+    && 1 ) {
+    return 1;    /* -ENODEV or -EAGAIN would be more accurate. */
     }
     return 0;
 }
@@ -127,15 +127,15 @@ ethif_probe(struct device *dev)
 static struct device d_link_dev = {
     "dl0", 0, 0, 0, 0, D_LINK_IO, D_LINK_IRQ, 0, 0, 0, NEXT_DEV, d_link_init };
 #   undef NEXT_DEV
-#   define NEXT_DEV	(&d_link_dev)
+#   define NEXT_DEV    (&d_link_dev)
 #endif
 
 /* Run-time ATtachable (Pocket) devices have a different (not "eth#") name. */
-#ifdef CONFIG_ATP		/* AT-LAN-TEC (RealTek) pocket adaptor. */
+#ifdef CONFIG_ATP        /* AT-LAN-TEC (RealTek) pocket adaptor. */
 static struct device atp_dev = {
     "atp0", 0, 0, 0, 0, 0, 0, 0, 0, 0, NEXT_DEV, atp_init, /* ... */ };
 #   undef NEXT_DEV
-#   define NEXT_DEV	(&atp_dev)
+#   define NEXT_DEV    (&atp_dev)
 #endif
 
 /* The first device defaults to I/O base '0', which means autoprobe. */
@@ -160,74 +160,74 @@ static struct device eth0_dev = {
     "eth0", 0, 0, 0, 0, ETH0_ADDR, ETH0_IRQ, 0, 0, 0, &eth1_dev, ethif_probe };
 
 #   undef NEXT_DEV
-#   define NEXT_DEV	(&eth0_dev)
+#   define NEXT_DEV    (&eth0_dev)
 
 #if defined(PLIP) || defined(CONFIG_PLIP)
     extern int plip_init(struct device *);
     static struct device plip2_dev = {
-	"plip2", 0, 0, 0, 0, 0x278, 2, 0, 0, 0, NEXT_DEV, plip_init, };
+    "plip2", 0, 0, 0, 0, 0x278, 2, 0, 0, 0, NEXT_DEV, plip_init, };
     static struct device plip1_dev = {
-	"plip1", 0, 0, 0, 0, 0x378, 7, 0, 0, 0, &plip2_dev, plip_init, };
+    "plip1", 0, 0, 0, 0, 0x378, 7, 0, 0, 0, &plip2_dev, plip_init, };
     static struct device plip0_dev = {
-	"plip0", 0, 0, 0, 0, 0x3BC, 5, 0, 0, 0, &plip1_dev, plip_init, };
+    "plip0", 0, 0, 0, 0, 0x3BC, 5, 0, 0, 0, &plip1_dev, plip_init, };
 #   undef NEXT_DEV
-#   define NEXT_DEV	(&plip0_dev)
+#   define NEXT_DEV    (&plip0_dev)
 #endif  /* PLIP */
 
 #if defined(SLIP) || defined(CONFIG_SLIP)
     extern int slip_init(struct device *);
     static struct device slip3_dev = {
-	"sl3",			/* Internal SLIP driver, channel 3	*/
-	0x0,			/* recv memory end			*/
-	0x0,			/* recv memory start			*/
-	0x0,			/* memory end				*/
-	0x0,			/* memory start				*/
-	0x3,			/* base I/O address			*/
-	0,			/* IRQ					*/
-	0, 0, 0,		/* flags				*/
-	NEXT_DEV,		/* next device				*/
-	slip_init		/* slip_init should set up the rest	*/
+    "sl3",            /* Internal SLIP driver, channel 3    */
+    0x0,              /* recv memory end            */
+    0x0,              /* recv memory start            */
+    0x0,              /* memory end                */
+    0x0,              /* memory start                */
+    0x3,              /* base I/O address            */
+    0,                /* IRQ                    */
+    0, 0, 0,          /* flags                */
+    NEXT_DEV,         /* next device                */
+    slip_init         /* slip_init should set up the rest    */
     };
     static struct device slip2_dev = {
-	"sl2",			/* Internal SLIP driver, channel 2	*/
-	0x0,			/* recv memory end			*/
-	0x0,			/* recv memory start			*/
-	0x0,			/* memory end				*/
-	0x0,			/* memory start				*/
-	0x2,			/* base I/O address			*/
-	0,			/* IRQ					*/
-	0, 0, 0,		/* flags				*/
-	&slip3_dev,		/* next device				*/
-	slip_init		/* slip_init should set up the rest	*/
+    "sl2",           /* Internal SLIP driver, channel 2    */
+    0x0,             /* recv memory end            */
+    0x0,             /* recv memory start            */
+    0x0,             /* memory end                */
+    0x0,             /* memory start                */
+    0x2,             /* base I/O address            */
+    0,               /* IRQ                    */
+    0, 0, 0,         /* flags                */
+    &slip3_dev,      /* next device                */
+    slip_init        /* slip_init should set up the rest    */
     };
     static struct device slip1_dev = {
-	"sl1",			/* Internal SLIP driver, channel 1	*/
-	0x0,			/* recv memory end			*/
-	0x0,			/* recv memory start			*/
-	0x0,			/* memory end				*/
-	0x0,			/* memory start				*/
-	0x1,			/* base I/O address			*/
-	0,			/* IRQ					*/
-	0, 0, 0,		/* flags				*/
-	&slip2_dev,		/* next device				*/
-	slip_init		/* slip_init should set up the rest	*/
+    "sl1",            /* Internal SLIP driver, channel 1    */
+    0x0,              /* recv memory end            */
+    0x0,              /* recv memory start            */
+    0x0,              /* memory end                */
+    0x0,              /* memory start                */
+    0x1,              /* base I/O address            */
+    0,                /* IRQ                    */
+    0, 0, 0,          /* flags                */
+    &slip2_dev,       /* next device                */
+    slip_init         /* slip_init should set up the rest    */
     };
     static struct device slip0_dev = {
-	"sl0",			/* Internal SLIP driver, channel 0	*/
-	0x0,			/* recv memory end			*/
-	0x0,			/* recv memory start			*/
-	0x0,			/* memory end				*/
-	0x0,			/* memory start				*/
-	0x0,			/* base I/O address			*/
-	0,			/* IRQ					*/
-	0, 0, 0,		/* flags				*/
-	&slip1_dev,		/* next device				*/
-	slip_init		/* slip_init should set up the rest	*/
+    "sl0",            /* Internal SLIP driver, channel 0    */
+    0x0,            /* recv memory end            */
+    0x0,            /* recv memory start            */
+    0x0,            /* memory end                */
+    0x0,            /* memory start                */
+    0x0,            /* base I/O address            */
+    0,            /* IRQ                    */
+    0, 0, 0,        /* flags                */
+    &slip1_dev,        /* next device                */
+    slip_init        /* slip_init should set up the rest    */
     };
-#   undef	NEXT_DEV
-#   define	NEXT_DEV	(&slip0_dev)
-#endif	/* SLIP */
-  
+#   undef    NEXT_DEV
+#   define    NEXT_DEV    (&slip0_dev)
+#endif    /* SLIP */
+
 #if defined(CONFIG_PPP)
 extern int ppp_init(struct device *);
 static struct device ppp3_dev = {
@@ -245,19 +245,19 @@ static struct device ppp0_dev = {
 #ifdef LOOPBACK
     extern int loopback_init(struct device *dev);
     static struct device loopback_dev = {
-	"lo",			/* Software Loopback interface		*/
-	0x0,			/* recv memory end			*/
-	0x0,			/* recv memory start			*/
-	0x0,			/* memory end				*/
-	0x0,			/* memory start				*/
-	0,			/* base I/O address			*/
-	0,			/* IRQ					*/
-	0, 0, 0,		/* flags				*/
-	NEXT_DEV,		/* next device				*/
-	loopback_init		/* loopback_init should set up the rest	*/
+    "lo",            /* Software Loopback interface */
+    0x0,             /* recv memory end */
+    0x0,             /* recv memory start */
+    0x0,             /* memory end */
+    0x0,             /* memory start */
+    0,               /* base I/O address */
+    0,               /* IRQ */
+    0, 0, 0,         /* flags */
+    NEXT_DEV,        /* next device */
+    loopback_init    /* loopback_init should set up the rest */
     };
-#   undef	NEXT_DEV
-#   define	NEXT_DEV	(&loopback_dev)
+#   undef    NEXT_DEV
+#   define    NEXT_DEV    (&loopback_dev)
 #endif
 
 

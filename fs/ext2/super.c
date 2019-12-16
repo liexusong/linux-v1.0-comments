@@ -116,7 +116,7 @@ void ext2_put_super (struct super_block * sb)
 	return;
 }
 
-static struct super_operations ext2_sops = { 
+static struct super_operations ext2_sops = {
 	ext2_read_inode,
 	NULL,
 	ext2_write_inode,
@@ -146,7 +146,7 @@ static int convert_pre_02b_fs (struct super_block * sb,
 		return 0;
 	}
 	memcpy (old_group_desc, bh2->b_data, BLOCK_SIZE);
-	groups_count = (sb->u.ext2_sb.s_blocks_count - 
+	groups_count = (sb->u.ext2_sb.s_blocks_count -
 			sb->u.ext2_sb.s_first_data_block +
 			(EXT2_BLOCK_SIZE(sb) * 8) - 1) /
 				(EXT2_BLOCK_SIZE(sb) * 8);
@@ -375,7 +375,7 @@ struct super_block * ext2_read_super (struct super_block * sb, void * data,
 
 	lock_super (sb);
 	set_blocksize (dev, BLOCK_SIZE);
-	if (!(bh = bread (dev, sb_block, BLOCK_SIZE))) {
+	if (!(bh = bread (dev, sb_block, BLOCK_SIZE))) { // 从磁盘中读取ext2超级块数据
 		sb->s_dev = 0;
 		unlock_super (sb);
 		printk ("EXT2-fs: unable to read superblock\n");
@@ -401,11 +401,12 @@ struct super_block * ext2_read_super (struct super_block * sb, void * data,
 				MAJOR(dev), MINOR(dev));
 		return NULL;
 	}
-	sb->s_blocksize = EXT2_MIN_BLOCK_SIZE << es->s_log_block_size;
+	sb->s_blocksize = EXT2_MIN_BLOCK_SIZE << es->s_log_block_size; // 数据块大小
 	sb->s_blocksize_bits = EXT2_BLOCK_SIZE_BITS(sb);
-	if (sb->s_blocksize != BLOCK_SIZE && 
-	    (sb->s_blocksize == 1024 || sb->s_blocksize == 2048 ||  
-	     sb->s_blocksize == 4096)) {
+	if (sb->s_blocksize != BLOCK_SIZE &&
+		(sb->s_blocksize == 1024 ||
+		 sb->s_blocksize == 2048 ||
+		 sb->s_blocksize == 4096)) {
 		unsigned long offset;
 
 		brelse (bh);
@@ -425,22 +426,17 @@ struct super_block * ext2_read_super (struct super_block * sb, void * data,
 			return NULL;
 		}
 	}
-	sb->u.ext2_sb.s_frag_size = EXT2_MIN_FRAG_SIZE <<
-				   es->s_log_frag_size;
+	sb->u.ext2_sb.s_frag_size = EXT2_MIN_FRAG_SIZE << es->s_log_frag_size;
 	if (sb->u.ext2_sb.s_frag_size)
-		sb->u.ext2_sb.s_frags_per_block = sb->s_blocksize /
-						  sb->u.ext2_sb.s_frag_size;
+		sb->u.ext2_sb.s_frags_per_block = sb->s_blocksize / sb->u.ext2_sb.s_frag_size;
 	else
 		sb->s_magic = 0;
 	sb->u.ext2_sb.s_blocks_per_group = es->s_blocks_per_group;
 	sb->u.ext2_sb.s_frags_per_group = es->s_frags_per_group;
 	sb->u.ext2_sb.s_inodes_per_group = es->s_inodes_per_group;
-	sb->u.ext2_sb.s_inodes_per_block = sb->s_blocksize /
-					   sizeof (struct ext2_inode);
-	sb->u.ext2_sb.s_itb_per_group = sb->u.ext2_sb.s_inodes_per_group /
-				        sb->u.ext2_sb.s_inodes_per_block;
-	sb->u.ext2_sb.s_desc_per_block = sb->s_blocksize /
-					 sizeof (struct ext2_group_desc);
+	sb->u.ext2_sb.s_inodes_per_block = sb->s_blocksize / sizeof (struct ext2_inode);
+	sb->u.ext2_sb.s_itb_per_group = sb->u.ext2_sb.s_inodes_per_group / sb->u.ext2_sb.s_inodes_per_block;
+	sb->u.ext2_sb.s_desc_per_block = sb->s_blocksize / sizeof (struct ext2_group_desc);
 	sb->u.ext2_sb.s_sbh = bh;
 	sb->u.ext2_sb.s_es = es;
 	sb->u.ext2_sb.s_mount_state = es->s_state;
@@ -451,7 +447,7 @@ struct super_block * ext2_read_super (struct super_block * sb, void * data,
 		if (es->s_blocks_count > 262144) {
 			/*
 			 * fs > 256 MB can't be converted
-			 */ 
+			 */
 			sb->s_dev = 0;
 			unlock_super (sb);
 			brelse (bh);
@@ -646,7 +642,7 @@ int ext2_remount (struct super_block * sb, int * flags, char * data)
 	else {
 		/*
 		 * Mounting a RDONLY partition read-write, so reread and
-		 * store the current valid flag.  (It may have been changed 
+		 * store the current valid flag.  (It may have been changed
 		 * by e2fsck since we originally mounted the partition.)
 		 */
 		sb->u.ext2_sb.s_mount_state = es->s_state;

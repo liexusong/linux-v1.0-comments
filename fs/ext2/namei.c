@@ -72,6 +72,7 @@ static int ext2_match (int len, const char * const name,
  * itself (as a parameter - res_dir). It does NOT read the inode of the
  * entry - you'll have to do that yourself if you want to.
  */
+// 这个函数用于在目录中找到指定的文件或者子目录entry, 文件名或者子目录名通过name指定
 static struct buffer_head * ext2_find_entry (struct inode * dir,
 					     const char * const name, int namelen,
 					     struct ext2_dir_entry ** res_dir)
@@ -97,7 +98,7 @@ static struct buffer_head * ext2_find_entry (struct inode * dir,
 
 	memset (bh_use, 0, sizeof (bh_use));
 	toread = 0;
-	for (block = 0; block < NAMEI_RA_SIZE; ++block) {
+	for (block = 0; block < NAMEI_RA_SIZE; ++block) { // 先获取前8个数据块
 		struct buffer_head * bh;
 
 		if ((block << EXT2_BLOCK_SIZE_BITS (sb)) >= dir->i_size)
@@ -188,7 +189,7 @@ int ext2_lookup (struct inode * dir, const char * name, int len,
 			iput (dir);
 			return -ENOENT;
 		}
-		ino = de->inode;
+		ino = de->inode; // 文件或者子目录对应的inode序号
 #ifndef DONT_USE_DCACHE
 		ext2_dcache_add (dir->i_dev, dir->i_ino, de->name,
 				 de->name_len, ino);
@@ -349,7 +350,7 @@ static int ext2_delete_entry (struct ext2_dir_entry * dir,
 	pde = NULL;
 	de = (struct ext2_dir_entry *) bh->b_data;
 	while (i < bh->b_size) {
-		if (!ext2_check_dir_entry ("ext2_delete_entry", NULL, 
+		if (!ext2_check_dir_entry ("ext2_delete_entry", NULL,
 					   de, bh, i))
 			return -EIO;
 		if (de == dir)  {
@@ -445,7 +446,7 @@ int ext2_mknod (struct inode * dir, const char * name, int len, int mode,
 		inode->i_op = &chrdev_inode_operations;
 	else if (S_ISBLK(inode->i_mode))
 		inode->i_op = &blkdev_inode_operations;
-	else if (S_ISFIFO(inode->i_mode)) 
+	else if (S_ISFIFO(inode->i_mode))
 		init_fifo(inode);
 	if (S_ISBLK(mode) || S_ISCHR(mode))
 		inode->i_rdev = rdev;
@@ -583,7 +584,7 @@ static int empty_dir (struct inode * inode)
 	}
 	de = (struct ext2_dir_entry *) bh->b_data;
 	de1 = (struct ext2_dir_entry *) ((char *) de + de->rec_len);
-	if (de->inode != inode->i_ino || !de1->inode || 
+	if (de->inode != inode->i_ino || !de1->inode ||
 	    strcmp (".", de->name) || strcmp ("..", de1->name)) {
 	    	ext2_warning (inode->i_sb, "empty_dir",
 			      "bad directory (dir %lu)", inode->i_ino);
@@ -969,7 +970,7 @@ start_up:
 	if (!old_inode)
 		goto end_rename;
 	retval = -EPERM;
-	if ((old_dir->i_mode & S_ISVTX) && 
+	if ((old_dir->i_mode & S_ISVTX) &&
 	    current->euid != old_inode->i_uid &&
 	    current->euid != old_dir->i_uid && !suser())
 		goto end_rename;

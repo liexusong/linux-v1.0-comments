@@ -58,7 +58,7 @@ static int block_bmap (struct buffer_head * bh, int nr)
 	return tmp;
 }
 
-/* 
+/*
  * ext2_discard_prealloc and ext2_alloc_block are atomic wrt. the
  * superblock in the same manner as are ext2_free_blocks and
  * ext2_new_block.  We just wait on the super rather than locking it
@@ -92,7 +92,7 @@ static int ext2_alloc_block (struct inode * inode, unsigned long goal)
 	if (inode->u.ext2_i.i_prealloc_count &&
 	    (goal == inode->u.ext2_i.i_prealloc_block ||
 	     goal + 1 == inode->u.ext2_i.i_prealloc_block))
-	{		
+	{
 		result = inode->u.ext2_i.i_prealloc_block++;
 		inode->u.ext2_i.i_prealloc_count--;
 		ext2_debug ("preallocation hit (%lu/%lu).\n",
@@ -204,7 +204,7 @@ repeat:
 		brelse (result);
 		goto repeat;
 	}
-	if (!create || new_block >= 
+	if (!create || new_block >=
 	    (current->rlim[RLIMIT_FSIZE].rlim_cur >>
 	     EXT2_BLOCK_SIZE_BITS(inode->i_sb))) {
 		*err = -EFBIG;
@@ -223,7 +223,7 @@ repeat:
 			}
 		}
 		if (!goal)
-			goal = (inode->u.ext2_i.i_block_group * 
+			goal = (inode->u.ext2_i.i_block_group *
 				EXT2_BLOCKS_PER_GROUP(inode->i_sb)) +
 			       inode->i_sb->u.ext2_sb.s_es->s_first_data_block;
 	}
@@ -253,7 +253,7 @@ repeat:
 
 static struct buffer_head * block_getblk (struct inode * inode,
 					  struct buffer_head * bh, int nr,
-					  int create, int blocksize, 
+					  int create, int blocksize,
 					  int new_block, int * err)
 {
 	int tmp, goal = 0;
@@ -283,8 +283,8 @@ repeat:
 		brelse (result);
 		goto repeat;
 	}
-	if (!create || new_block >= 
-	    (current->rlim[RLIMIT_FSIZE].rlim_cur >> 
+	if (!create || new_block >=
+	    (current->rlim[RLIMIT_FSIZE].rlim_cur >>
 	     EXT2_BLOCK_SIZE_BITS(inode->i_sb))) {
 		brelse (bh);
 		*err = -EFBIG;
@@ -340,7 +340,7 @@ struct buffer_head * ext2_getblk (struct inode * inode, long block,
 		ext2_warning (inode->i_sb, "ext2_getblk", "block < 0");
 		return NULL;
 	}
-	if (block > EXT2_NDIR_BLOCKS + addr_per_block  +
+	if (block > EXT2_NDIR_BLOCKS + addr_per_block +
 		    addr_per_block * addr_per_block +
 		    addr_per_block * addr_per_block * addr_per_block) {
 		ext2_warning (inode->i_sb, "ext2_getblk", "block > big");
@@ -352,7 +352,7 @@ struct buffer_head * ext2_getblk (struct inode * inode, long block,
 	 * allocations use the same goal zone
 	 */
 
-	ext2_debug ("block %lu, next %lu, goal %lu.\n", block, 
+	ext2_debug ("block %lu, next %lu, goal %lu.\n", block,
 		    inode->u.ext2_i.i_next_alloc_block,
 		    inode->u.ext2_i.i_next_alloc_goal);
 
@@ -363,22 +363,23 @@ struct buffer_head * ext2_getblk (struct inode * inode, long block,
 
 	*err = -ENOSPC;
 	b = block;
-	if (block < EXT2_NDIR_BLOCKS)
+	if (block < EXT2_NDIR_BLOCKS) // 直接数据块
 		return inode_getblk (inode, block, create, b, err);
 	block -= EXT2_NDIR_BLOCKS;
-	if (block < addr_per_block) {
+	if (block < addr_per_block) { // 一级间接数据块
 		bh = inode_getblk (inode, EXT2_IND_BLOCK, create, b, err);
 		return block_getblk (inode, bh, block, create,
 				     inode->i_sb->s_blocksize, b, err);
 	}
 	block -= addr_per_block;
-	if (block < addr_per_block * addr_per_block) {
+	if (block < addr_per_block * addr_per_block) { // 二级间接数据块
 		bh = inode_getblk (inode, EXT2_DIND_BLOCK, create, b, err);
 		bh = block_getblk (inode, bh, block / addr_per_block, create,
 				   inode->i_sb->s_blocksize, b, err);
 		return block_getblk (inode, bh, block & (addr_per_block - 1),
 				     create, inode->i_sb->s_blocksize, b, err);
 	}
+	// 三级间接数据块
 	block -= addr_per_block * addr_per_block;
 	bh = inode_getblk (inode, EXT2_TIND_BLOCK, create, b, err);
 	bh = block_getblk (inode, bh, block/(addr_per_block * addr_per_block),
@@ -389,7 +390,7 @@ struct buffer_head * ext2_getblk (struct inode * inode, long block,
 			     inode->i_sb->s_blocksize, b, err);
 }
 
-struct buffer_head * ext2_bread (struct inode * inode, int block, 
+struct buffer_head * ext2_bread (struct inode * inode, int block,
 				 int create, int *err)
 {
 	struct buffer_head * bh;
@@ -416,11 +417,13 @@ void ext2_read_inode (struct inode * inode)
 	unsigned long block;
 	struct ext2_group_desc * gdp;
 
-	if ((inode->i_ino != EXT2_ROOT_INO && inode->i_ino != EXT2_ACL_IDX_INO &&
-	     inode->i_ino != EXT2_ACL_DATA_INO && inode->i_ino < EXT2_FIRST_INO) ||
-	    inode->i_ino > inode->i_sb->u.ext2_sb.s_es->s_inodes_count) {
+	if ((inode->i_ino != EXT2_ROOT_INO &&
+		 inode->i_ino != EXT2_ACL_IDX_INO &&
+		 inode->i_ino != EXT2_ACL_DATA_INO &&
+		 inode->i_ino < EXT2_FIRST_INO) ||
+		 inode->i_ino > inode->i_sb->u.ext2_sb.s_es->s_inodes_count) {
 		ext2_error (inode->i_sb, "ext2_read_inode",
-			    "bad inode number: %lu", inode->i_ino);
+				"bad inode number: %lu", inode->i_ino);
 		return;
 	}
 	block_group = (inode->i_ino - 1) / EXT2_INODES_PER_GROUP(inode->i_sb);

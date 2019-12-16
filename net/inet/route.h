@@ -25,12 +25,12 @@
 /* This is an entry in the IP routing table. */
 struct rtable {
   struct rtable		*rt_next;
-  unsigned long		rt_dst;
-  unsigned long		rt_mask;
-  unsigned long		rt_gateway;
-  unsigned char		rt_flags;
+  unsigned long		rt_dst;      // 目标地址
+  unsigned long		rt_mask;     // 子掩码
+  unsigned long		rt_gateway;  // 网关地址
+  unsigned char		rt_flags;    // 标志
   unsigned char		rt_metric;
-  short			rt_refcnt;
+  short			      rt_refcnt;
   unsigned long		rt_use;
   unsigned short	rt_mss, rt_mtu;
   struct device		*rt_dev;

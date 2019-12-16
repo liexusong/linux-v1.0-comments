@@ -3,14 +3,14 @@
 
 /*
  * 	genhd.h Copyright (C) 1992 Drew Eckhardt
- *	Generic hard disk header file by  
+ *	Generic hard disk header file by
  * 		Drew Eckhardt
  *
  *		<drew@colorado.edu>
  */
-	
+
 #define EXTENDED_PARTITION 5
-	
+
 struct partition {
 	unsigned char boot_ind;		/* 0x80 - active */
 	unsigned char head;		/* starting head */
@@ -30,7 +30,7 @@ struct hd_struct {
 };
 
 struct gendisk {
-	int major;			/* major number of driver */
+	int major;			/* major number of driver */ // 主设备号, 指定设备属于什么类型
 	char *major_name;		/* name of major driver */
 	int minor_shift;		/* number of times minor is shifted to
 					   get real minor */

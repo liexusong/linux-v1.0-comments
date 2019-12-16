@@ -199,12 +199,18 @@ int chk_addr(unsigned long addr)
     unsigned long mask;
 
     /* Accept both `all ones' and `all zeros' as BROADCAST. */
+    // INADDR_ANY = 0x00000000
+    // INADDR_BROADCAST = 0xffffffff
+    // 是否为广播地址
     if (addr == INADDR_ANY || addr == INADDR_BROADCAST)
         return IS_BROADCAST;
 
+    // 根据地址类型获取当前地址的子掩码
     mask = get_mask(addr);
 
     /* Accept all of the `loopback' class A net. */
+    // 0x7F000000L 二进制为: 01111111000000000000000000000000
+    // 127.xxx.xxx.xxx
     if ((addr & mask) == htonl(0x7F000000L))
         return IS_MYADDR;
 
@@ -212,7 +218,7 @@ int chk_addr(unsigned long addr)
     for (dev = dev_base; dev != NULL; dev = dev->next) {
         if (!(dev->flags & IFF_UP))
             continue;
-        if ((dev->pa_addr == 0)/* || (dev->flags&IFF_PROMISC)*/)
+        if ((dev->pa_addr == 0)) // 如果网卡IP地址设置为0, 表示接受所有数据
             return IS_MYADDR;
         /* Is it the exact IP address? */
         if (addr == dev->pa_addr)
@@ -221,10 +227,10 @@ int chk_addr(unsigned long addr)
         if ((dev->flags & IFF_BROADCAST) && addr == dev->pa_brdaddr)
             return IS_BROADCAST;
         /* Nope. Check for a subnetwork broadcast. */
-        if (((addr ^ dev->pa_addr) & dev->pa_mask) == 0) {
-            if ((addr & ~dev->pa_mask) == 0)
+        if (((addr ^ dev->pa_addr) & dev->pa_mask) == 0) { // 与网卡地址属于同一个网段
+            if ((addr & ~dev->pa_mask) == 0) // 主机号全为0
                 return IS_BROADCAST;
-            if ((addr & ~dev->pa_mask) == ~dev->pa_mask)
+            if ((addr & ~dev->pa_mask) == ~dev->pa_mask) // 主机号全为1
                 return IS_BROADCAST;
         }
         /* Nope. Check for Network broadcast. */
@@ -605,7 +611,7 @@ inet_bh(void *tmp)
   dev_transmit();
 
   /* Any data left to process? */
-  while((skb=skb_dequeue(&backlog))!=NULL) // 从sk_buff队列中获取一个sk_buff
+  while((skb=skb_dequeue(&backlog))!=NULL) // 从backlog队列中获取一个sk_buff
   {
       nitcount=dev_nit;
       flag=0;
@@ -1020,6 +1026,7 @@ dev_ioctl(unsigned int cmd, void *arg)
 
 
 /* Initialize the DEV module. */
+// 初始化设备驱动
 void
 dev_init(void)
 {
@@ -1031,10 +1038,10 @@ dev_init(void)
    * next reboot.
    */
   dev2 = NULL;
-  for (dev = dev_base; dev != NULL; dev=dev->next) {
+  for (dev = dev_base; dev != NULL; dev=dev->next) { // 在文件drivers/net/Space.c文件中
     if (dev->init && dev->init(dev)) {
-        if (dev2 == NULL) dev_base = dev->next;
-          else dev2->next = dev->next;
+        if (dev2 == NULL) dev_base = dev->next; // 过滤无效的设备
+        else dev2->next = dev->next;
     } else {
         dev2 = dev;
     }

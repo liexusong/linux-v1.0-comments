@@ -19,7 +19,7 @@
  * that later. Anyway, now the file code is no longer dependent
  * on bitmaps in unsigned longs, but uses the new fd_set structure..
  *
- * Some programs (notably those using select()) may have to be 
+ * Some programs (notably those using select()) may have to be
  * recompiled to take full advantage of the new limits..
  */
 #undef NR_OPEN
@@ -32,7 +32,7 @@
 #define NR_IHASH 131
 #define NR_FILE_LOCKS 64
 #define BLOCK_SIZE 1024
-#define BLOCK_SIZE_BITS 10
+#define BLOCK_SIZE_BITS 10  // 1 << 10 == 1024
 
 #define MAY_EXEC 1
 #define MAY_WRITE 2
